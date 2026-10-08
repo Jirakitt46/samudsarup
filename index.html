@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>สมุดสรุป</title>
+<meta name="description" content="ชีทสรุปฟิสิกส์และคณิตศาสตร์">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317202f'/%3E%3Cpath d='M6 16c3-8 7-8 10 0s7 8 10 0' fill='none' stroke='%233dd6b5' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: graph-paper lab notebook — hero with a live Lissajous plot you steer with the cursor, a formula ticker, then a tilt-and-glare grid of PDF sheets */
+:root{
+  --bg:#f3f5fa;
+  --grid:rgba(40,60,120,.07);
+  --paper:#ffffff;
+  --ink:#18203a;
+  --muted:#5f6b86;
+  --line:#dfe4ee;
+  --accent:#e04f74;
+  --phys:#0d9a7f;
+  --math:#c97a10;
+  --glare:rgba(255,255,255,.55);
+  --shadow:0 1px 0 var(--line),0 18px 40px -26px rgba(24,32,58,.45);
+  --sans:"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f121b;--grid:rgba(140,170,255,.05);--paper:#161b27;--ink:#e7ebf5;--muted:#8f99b0;--line:#252c3d;
+    --accent:#ff7a98;--phys:#3dd6b5;--math:#ffb44d;--glare:rgba(255,255,255,.08);
+    --shadow:0 1px 0 var(--line),0 18px 40px -24px rgba(0,0,0,.8);color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f121b;--grid:rgba(140,170,255,.05);--paper:#161b27;--ink:#e7ebf5;--muted:#8f99b0;--line:#252c3d;
+  --accent:#ff7a98;--phys:#3dd6b5;--math:#ffb44d;--glare:rgba(255,255,255,.08);
+  --shadow:0 1px 0 var(--line),0 18px 40px -24px rgba(0,0,0,.8);color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100vh;
+  background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;
+  padding-inline:max(16px,env(safe-area-inset-left));
+  padding-block:calc(20px + env(safe-area-inset-top)) calc(56px + env(safe-area-inset-bottom));
+  transition:background-color .3s,color .3s;
+}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:32px}
+h1,h2,h3{margin:0;text-wrap:balance}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+.mono{font-family:var(--mono)}
+
+/* nav */
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:.95rem}
+.brand svg{width:28px;height:28px}
+.tbtn{border:1px solid var(--line);background:var(--paper);border-radius:999px;height:36px;padding:0 14px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem;color:var(--muted)}
+.tbtn:hover{color:var(--ink)}
+.tbtn svg{width:16px;height:16px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center}
+@media (max-width:760px){.hero{grid-template-columns:1fr}}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+h1{font-size:clamp(2.4rem,7vw,4rem);font-weight:700;line-height:1.1;letter-spacing:-.02em;margin-top:8px}
+h1 .dot{color:var(--accent)}
+.lede{color:var(--muted);max-width:32em;margin:12px 0 0}
+.msg{margin-top:20px;display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--paper) 80%,transparent);border-radius:0 12px 12px 0;max-width:32em}
+.msg p{margin:0;white-space:pre-wrap;word-break:break-word}
+.msg .lbl{font-family:var(--mono);font-size:.7rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding-top:3px;white-space:nowrap}
+.stats{display:flex;gap:24px;flex-wrap:wrap;margin-top:22px}
+.stat b{display:block;font-family:var(--mono);font-size:1.6rem;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:.8rem;color:var(--muted)}
+
+.scope{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;aspect-ratio:4/3;max-width:100%;touch-action:none;cursor:crosshair}
+.scope canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.scope .readout{position:absolute;left:14px;bottom:12px;right:14px;display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:.75rem;color:var(--muted);pointer-events:none;flex-wrap:wrap}
+.scope .readout b{color:var(--ink);font-weight:500}
+.scope .hint{position:absolute;top:12px;right:14px;font-family:var(--mono);font-size:.7rem;color:var(--muted);pointer-events:none}
+
+/* ticker */
+.ticker{overflow:hidden;border-block:1px solid var(--line);padding-block:10px;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.track{display:flex;gap:48px;width:max-content;font-family:var(--mono);font-size:.9rem;color:var(--muted);animation:tick 60s linear infinite}
+.track span{white-space:nowrap}
+.track span i{font-style:normal;color:var(--ink)}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* toolbar */
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px;position:relative;isolation:isolate}
+.seg button{border:0;background:transparent;padding:7px 16px;border-radius:999px;cursor:pointer;font-weight:500;font-size:.9rem;color:var(--muted);display:inline-flex;gap:8px;align-items:center;transition:color .2s}
+.seg button[aria-pressed="true"]{color:var(--paper)}
+.seg button .n{font-family:var(--mono);font-size:.75rem;opacity:.75}
+.seg .pill{position:absolute;z-index:-1;top:4px;bottom:4px;border-radius:999px;background:var(--ink);transition:left .3s cubic-bezier(.3,.7,.2,1),width .3s cubic-bezier(.3,.7,.2,1)}
+.search{position:relative;flex:1 1 220px;max-width:340px}
+.search input{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:9px 44px 9px 16px}
+.search kbd{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:.72rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;perspective:1000px}
+.card{--c:var(--phys);position:relative;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;min-width:0;transform-style:preserve-3d;transition:transform .25s ease,box-shadow .25s ease;animation:rise .5s both;animation-delay:calc(var(--i,0) * 50ms)}
+.card.math{--c:var(--math)}
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(260px circle at var(--mx,50%) var(--my,0%),var(--glare),transparent 60%);opacity:0;transition:opacity .25s}
+.card:hover::after{opacity:1}
+.card::before{content:"";position:absolute;left:18px;right:18px;top:0;height:2px;background:var(--c);border-radius:0 0 2px 2px;opacity:.8}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tag{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--c);text-transform:uppercase}
+.idx{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.card h3{font-size:1.08rem;font-weight:600;line-height:1.4;word-break:break-word}
+.topic{font-size:.86rem;color:var(--muted);word-break:break-word}
+.note{margin:0;font-size:.88rem;padding:8px 10px;border-radius:10px;background:var(--bg);word-break:break-word;white-space:pre-wrap}
+.card-foot{margin-top:auto;display:flex;align-items:center;gap:8px;padding-top:6px}
+.card-foot .size{font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-right:auto}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;border-radius:999px;padding:7px 14px;font-size:.86rem;font-weight:500;cursor:pointer;text-decoration:none;white-space:nowrap;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-open{background:var(--ink);color:var(--paper)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.check{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:background .2s,color .2s,border-color .2s}
+.check svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .35s ease}
+.check[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:var(--paper)}
+.check[aria-pressed="true"] svg{stroke-dashoffset:0}
+.check:hover svg{stroke-dashoffset:0}
+.card.done h3{color:var(--muted)}
+
+.state{border:1px dashed var(--line);border-radius:18px;padding:36px 20px;text-align:center;color:var(--muted);display:grid;gap:6px;justify-items:center;background:color-mix(in srgb,var(--paper) 70%,transparent)}
+.state b{color:var(--ink);font-size:1.05rem}
+.state code{font-family:var(--mono);font-size:.85rem;background:var(--paper);border:1px solid var(--line);padding:1px 6px;border-radius:6px}
+.demo{font-family:var(--mono);font-size:.75rem;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px}
+
+/* viewer */
+.viewer{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fade .2s}
+.viewer-box{width:min(1000px,100%);height:min(90vh,100%);background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);animation:pop .3s cubic-bezier(.2,.8,.2,1)}
+.viewer-bar{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 18px;border-bottom:1px solid var(--line)}
+.viewer-bar strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.viewer iframe{flex:1;border:0;width:100%;background:var(--bg)}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.98)}}
+
+footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:.75rem;color:var(--muted);border-top:1px solid var(--line);padding-top:18px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--ink)"/><path d="M6 16c3-8 7-8 10 0s7 8 10 0" fill="none" stroke="var(--phys)" stroke-width="3" stroke-linecap="round"/></svg>
+      <span id="brandName">สมุดสรุป</span>
+    </div>
+    <button class="tbtn" id="themeBtn" aria-label="สลับโหมดสว่าง/มืด">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <span id="themeLbl">โหมดมืด</span>
+    </button>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Physics · Mathematics</div>
+      <h1><span id="title">สมุดสรุป</span><span class="dot">.</span></h1>
+      <p class="lede">รวมชีทสรุปฟิสิกส์กับคณิตศาสตร์ไว้ที่เดียว เปิดอ่านได้ทุกเมื่อ อ่านจบเรื่องไหนกดเครื่องหมายถูกเก็บไว้</p>
+      <div class="msg" id="msgBox" hidden><span class="lbl">note</span><p id="msg"></p></div>
+      <div class="stats">
+        <div class="stat"><b id="sTotal">0</b><span>ชีททั้งหมด</span></div>
+        <div class="stat"><b id="sRead">0</b><span>อ่านแล้ว</span></div>
+        <div class="stat"><b id="sPct">0%</b><span>ความคืบหน้า</span></div>
+      </div>
+    </div>
+    <div class="scope" id="scope" aria-label="กราฟลิสซาจูส ขยับเมาส์หรือลากนิ้วเพื่อเปลี่ยนรูปกราฟ" role="img">
+      <canvas id="plot"></canvas>
+      <div class="hint">ขยับเมาส์ / ลากนิ้ว</div>
+      <div class="readout"><span>x = sin(<b id="ra">3</b>t + φ)</span><span>y = sin(<b id="rb">2</b>t)</span><span>φ = <b id="rp">0.00</b></span></div>
+    </div>
+  </header>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="track" id="track"></div>
+  </div>
+
+  <main style="display:grid;gap:18px">
+    <div class="toolbar">
+      <div class="seg" id="seg" role="group" aria-label="กรองตามวิชา">
+        <span class="pill" id="pill"></span>
+        <button data-f="all" aria-pressed="true">ทั้งหมด <span class="n" id="nAll">0</span></button>
+        <button data-f="physics" aria-pressed="false">ฟิสิกส์ <span class="n" id="nPhys">0</span></button>
+        <button data-f="math" aria-pressed="false">คณิต <span class="n" id="nMath">0</span></button>
+      </div>
+      <label class="search">
+        <input id="search" type="search" placeholder="ค้นหาชื่อเรื่อง" aria-label="ค้นหาชื่อเรื่อง">
+        <kbd>/</kbd>
+      </label>
+    </div>
+    <div class="demo" id="demo" hidden>โหมดตัวอย่าง · การ์ดด้านล่างเป็นตัวอย่าง เมื่อขึ้น GitHub Pages แล้วจะแสดงไฟล์ PDF จริงจากโฟลเดอร์ pdfs/</div>
+    <div class="grid" id="grid"></div>
+    <div class="state" id="state"><b>กำลังโหลดชีทสรุป…</b></div>
+  </main>
+
+  <footer><span id="foot">pdfs/physics · pdfs/math</span><span>Δx ≥ ħ / 2Δp</span></footer>
+</div>
+
+<div class="viewer" id="viewer" hidden>
+  <div class="viewer-box" role="dialog" aria-modal="true" aria-labelledby="vTitle">
+    <div class="viewer-bar">
+      <strong id="vTitle"></strong>
+      <a class="btn btn-ghost" id="vOpen" target="_blank" rel="noopener">แท็บใหม่</a>
+      <button class="btn btn-open" id="vClose">ปิด</button>
+    </div>
+    <iframe id="vFrame" title="ชีทสรุป"></iframe>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const root = document.documentElement;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const SUBJ = {physics:{name:"ฟิสิกส์",tag:"physics",cls:""}, math:{name:"คณิตศาสตร์",tag:"math",cls:"math"}};
+  const store = {
+    get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+    set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  };
+
+  /* ---------- theme ---------- */
+  function isDark(){ const t=root.dataset.theme; return t ? t==="dark" : matchMedia("(prefers-color-scheme: dark)").matches; }
+  function syncThemeLbl(){ $("themeLbl").textContent = isDark() ? "โหมดสว่าง" : "โหมดมืด"; }
+  const savedTheme = store.get("theme", null); if(savedTheme) root.dataset.theme = savedTheme;
+  syncThemeLbl();
+  $("themeBtn").addEventListener("click",()=>{ root.dataset.theme = isDark() ? "light" : "dark"; store.set("theme", root.dataset.theme); syncThemeLbl(); readColors(); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{ syncThemeLbl(); readColors(); });
+
+  /* ---------- formula ticker ---------- */
+  const F = [["F","= ma"],["E","= mc²"],["v²","= u² + 2as"],["∫ xⁿ dx","= xⁿ⁺¹/(n+1) + C"],["p","= mv"],["a² + b²","= c²"],["W","= Fs cosθ"],["d/dx sin x","= cos x"],["T","= 2π√(l/g)"],["eⁱᵖ + 1","= 0"],["V","= IR"],["log ab","= log a + log b"],["λ","= h/p"],["Σ k","= n(n+1)/2"]];
+  const one = F.map(([a,b])=>`<span><i>${a}</i> ${b}</span>`).join("");
+  $("track").innerHTML = one + one;
+
+  /* ---------- Lissajous scope ---------- */
+  const scope=$("scope"), cv=$("plot"), ctx=cv.getContext("2d");
+  let W=0,H=0,dpr=1, colors={};
+  let a=3,b=2,ta=3,tb=2,phase=0;
+  function readColors(){ const cs=getComputedStyle(root); colors={ink:cs.getPropertyValue("--ink").trim(),line:cs.getPropertyValue("--line").trim(),phys:cs.getPropertyValue("--phys").trim(),math:cs.getPropertyValue("--math").trim(),accent:cs.getPropertyValue("--accent").trim(),muted:cs.getPropertyValue("--muted").trim()}; if(reduce) draw(); }
+  function resize(){ const r=scope.getBoundingClientRect(); dpr=Math.min(2,window.devicePixelRatio||1); W=r.width; H=r.height; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); if(reduce) draw(); }
+  function steer(x,y){ const r=scope.getBoundingClientRect(); ta=1+Math.round(((x-r.left)/r.width)*5); tb=1+Math.round(((y-r.top)/r.height)*5); ta=Math.max(1,Math.min(6,ta)); tb=Math.max(1,Math.min(6,tb)); if(reduce){a=ta;b=tb;draw();} }
+  scope.addEventListener("pointermove",e=>steer(e.clientX,e.clientY));
+  scope.addEventListener("pointerdown",e=>steer(e.clientX,e.clientY));
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const cx=W/2, cy=H/2-10, R=Math.min(W,H)*0.36;
+    // axes
+    ctx.strokeStyle=colors.line; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx-R-16,cy); ctx.lineTo(cx+R+16,cy); ctx.moveTo(cx,cy-R-16); ctx.lineTo(cx,cy+R+16); ctx.stroke();
+    // curve
+    const N=900, g=ctx.createLinearGradient(cx-R,cy-R,cx+R,cy+R);
+    g.addColorStop(0,colors.phys); g.addColorStop(1,colors.math);
+    ctx.strokeStyle=g; ctx.lineWidth=2.2; ctx.lineJoin="round"; ctx.beginPath();
+    for(let i=0;i<=N;i++){ const t=i/N*Math.PI*2; const x=cx+R*Math.sin(a*t+phase), y=cy+R*Math.sin(b*t); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.stroke();
+    // moving dot
+    const t=(performance.now()/1400)%(Math.PI*2);
+    const dx=cx+R*Math.sin(a*t+phase), dy=cy+R*Math.sin(b*t);
+    ctx.fillStyle=colors.accent; ctx.beginPath(); ctx.arc(dx,dy,4.5,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha=.25; ctx.beginPath(); ctx.arc(dx,dy,10,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+    $("ra").textContent=Math.round(a); $("rb").textContent=Math.round(b); $("rp").textContent=(phase%(Math.PI*2)).toFixed(2);
+  }
+  function loop(){ a+=(ta-a)*0.06; b+=(tb-b)*0.06; phase+=0.006; draw(); requestAnimationFrame(loop); }
+  readColors(); resize(); addEventListener("resize",resize);
+  if(reduce){ phase=Math.PI/4; draw(); } else requestAnimationFrame(loop);
+
+  /* ---------- data ---------- */
+  let items=[], filter="all", query="", read=new Set(store.get("read",[]));
+  const prettify = n => n.replace(/\.pdf$/i,"").replace(/^\d+[\s._-]+/,"").replace(/[_]+/g," ").trim();
+  const fmtSize = b => !b ? "" : b>1048576 ? (b/1048576).toFixed(1)+" MB" : Math.max(1,Math.round(b/1024))+" KB";
+  const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  function detectRepo(cfg){
+    if(cfg.repo && /^[\w.-]+\/[\w.-]+$/.test(cfg.repo)) return cfg.repo;
+    const h=location.hostname, m=h.match(/^([\w-]+)\.github\.io$/i);
+    if(!m) return null;
+    const seg=location.pathname.split("/").filter(Boolean)[0];
+    return m[1]+"/"+(seg && !/\.html?$/i.test(seg) ? seg : h);
+  }
+
+  async function listFolder(repo, folder){
+    const r = await fetch(`https://api.github.com/repos/${repo}/contents/pdfs/${folder}`,{headers:{Accept:"application/vnd.github+json"}});
+    if(r.status===404) return [];
+    if(!r.ok) throw new Error("http "+r.status);
+    const arr = await r.json();
+    return arr.filter(f=>f.type==="file" && /\.pdf$/i.test(f.name)).map(f=>({name:f.name,size:f.size,subject:folder,path:"pdfs/"+folder+"/"+f.name}));
+  }
+
+  async function load(){
+    let cfg={};
+    try{ const r=await fetch("site.json",{cache:"no-cache"}); if(r.ok) cfg=await r.json(); }catch(e){}
+    if(cfg.title){ $("title").textContent=cfg.title; $("brandName").textContent=cfg.title; document.title=cfg.title; }
+    if(cfg.message){ $("msg").textContent=cfg.message; $("msgBox").hidden=false; }
+    const notes=cfg.notes||{};
+    const repo=detectRepo(cfg);
+
+    if(!repo){
+      // local preview / not on GitHub Pages: show examples
+      $("demo").hidden=false;
+      items=[
+        {name:"01 การเคลื่อนที่แนวตรง.pdf",subject:"physics",size:1830000,path:"#"},
+        {name:"02 แรงและกฎการเคลื่อนที่.pdf",subject:"physics",size:2410000,path:"#"},
+        {name:"03 งานและพลังงาน.pdf",subject:"physics",size:960000,path:"#"},
+        {name:"01 เซตและตรรกศาสตร์.pdf",subject:"math",size:1120000,path:"#"},
+        {name:"02 ฟังก์ชัน.pdf",subject:"math",size:1570000,path:"#"},
+        {name:"03 เมทริกซ์.pdf",subject:"math",size:880000,path:"#"}
+      ].map(x=>Object.assign(x,notes[x.name]||{}));
+      finish(); return;
+    }
+
+    const cacheKey="list:"+repo, cached=store.get(cacheKey,null);
+    if(cached && Date.now()-cached.t<5*60*1000){ items=cached.items.map(x=>Object.assign({},x,notes[x.name]||{})); finish(); return; }
+    try{
+      const [p,m]=await Promise.all([listFolder(repo,"physics"),listFolder(repo,"math")]);
+      const raw=[...p,...m];
+      store.set(cacheKey,{t:Date.now(),items:raw});
+      items=raw.map(x=>Object.assign({},x,notes[x.name]||{}));
+      finish();
+    }catch(err){
+      if(cached){ items=cached.items.map(x=>Object.assign({},x,notes[x.name]||{})); finish(); return; }
+      $("state").innerHTML="<b>โหลดรายการชีทไม่สำเร็จ</b><span>อาจเปิดหน้านี้บ่อยเกินไปในชั่วโมงนี้ รอสักครู่แล้วรีเฟรชอีกครั้ง</span>";
+    }
+  }
+
+  function finish(){
+    items.sort((x,y)=> x.subject===y.subject ? x.name.localeCompare(y.name,"th",{numeric:true}) : (x.subject==="physics"?-1:1));
+    render(); countUp();
+  }
+
+  function stats(){
+    const total=items.length, done=items.filter(i=>read.has(i.path)).length;
+    return {total,done,pct: total?Math.round(done/total*100):0};
+  }
+  function countUp(){
+    const s=stats(), els=[[$("sTotal"),s.total,""],[$("sRead"),s.done,""],[$("sPct"),s.pct,"%"]];
+    if(reduce){ els.forEach(([el,v,u])=>el.textContent=v+u); return; }
+    const t0=performance.now();
+    (function step(now){ const k=Math.min(1,(now-t0)/900), e=1-Math.pow(1-k,3);
+      els.forEach(([el,v,u])=>el.textContent=Math.round(v*e)+u); if(k<1) requestAnimationFrame(step); })(t0);
+  }
+  function updateStats(){ const s=stats(); $("sTotal").textContent=s.total; $("sRead").textContent=s.done; $("sPct").textContent=s.pct+"%"; }
+
+  function render(){
+    $("nAll").textContent=items.length;
+    $("nPhys").textContent=items.filter(i=>i.subject==="physics").length;
+    $("nMath").textContent=items.filter(i=>i.subject==="math").length;
+    const q=query.trim().toLowerCase();
+    const list=items.filter(i=>(filter==="all"||i.subject===filter) && (!q || (prettify(i.name)+" "+(i.topic||"")+" "+(i.note||"")).toLowerCase().includes(q)));
+    let n={physics:0,math:0};
+    $("grid").innerHTML=list.map((i,k)=>{
+      const s=SUBJ[i.subject], done=read.has(i.path); n[i.subject]++;
+      const num=(i.name.match(/^(\d+)/)||[])[1];
+      return `<article class="card ${s.cls} ${done?"done":""}" style="--i:${k}" data-path="${esc(i.path)}">
+        <div class="card-top"><span class="tag">${s.tag}</span><span class="idx">${num?"#"+num.padStart(2,"0"):""}</span></div>
+        <h3>${esc(prettify(i.name))}</h3>
+        ${i.topic?`<div class="topic">${esc(i.topic)}</div>`:""}
+        ${i.note?`<p class="note">${esc(i.note)}</p>`:""}
+        <div class="card-foot">
+          <span class="size">${fmtSize(i.size)}</span>
+          <button class="check" data-act="read" aria-pressed="${done}" aria-label="${done?"อ่านแล้ว":"ทำเครื่องหมายว่าอ่านแล้ว"}" title="${done?"อ่านแล้ว":"อ่านแล้ว?"}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+          <button class="btn btn-open" data-act="open">เปิดอ่าน</button>
+        </div>
+      </article>`;
+    }).join("");
+    const st=$("state");
+    if(list.length){ st.hidden=true; }
+    else{
+      st.hidden=false;
+      st.innerHTML = items.length
+        ? "<b>ไม่เจอเรื่องที่ค้นหา</b><span>ลองใช้คำอื่น หรือเลือกวิชาอื่นดู</span>"
+        : "<b>ยังไม่มีชีทสรุป</b><span>อัปโหลดไฟล์ PDF ไปที่โฟลเดอร์ <code>pdfs/physics</code> หรือ <code>pdfs/math</code> แล้วชีทจะขึ้นที่นี่ภายในไม่กี่นาที</span>";
+    }
+    bindTilt(); updateStats();
+  }
+
+  /* ---------- segmented filter ---------- */
+  const seg=$("seg"), pill=$("pill");
+  function movePill(){ const b=seg.querySelector('[aria-pressed="true"]'); pill.style.left=b.offsetLeft+"px"; pill.style.width=b.offsetWidth+"px"; }
+  seg.addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return;
+    filter=b.dataset.f; seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); movePill(); render(); });
+  addEventListener("resize",movePill); document.fonts && document.fonts.ready.then(movePill); movePill();
+
+  $("search").addEventListener("input",e=>{ query=e.target.value; render(); });
+  document.addEventListener("keydown",e=>{
+    if(e.key==="/" && document.activeElement!==$("search")){ e.preventDefault(); $("search").focus(); }
+    if(e.key==="Escape" && !$("viewer").hidden) closeViewer();
+  });
+
+  /* ---------- card tilt + glare ---------- */
+  const canHover = matchMedia("(hover:hover) and (pointer:fine)").matches;
+  function bindTilt(){
+    if(!canHover || reduce) return;
+    $("grid").querySelectorAll(".card").forEach(c=>{
+      c.addEventListener("pointermove",e=>{ const r=c.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+        c.style.transform=`rotateX(${(0.5-y)*7}deg) rotateY(${(x-0.5)*9}deg) translateZ(4px)`;
+        c.style.setProperty("--mx",x*100+"%"); c.style.setProperty("--my",y*100+"%"); });
+      c.addEventListener("pointerleave",()=>{ c.style.transform=""; });
+    });
+  }
+
+  /* ---------- actions ---------- */
+  $("grid").addEventListener("click",e=>{
+    const b=e.target.closest("[data-act]"); if(!b) return;
+    const path=b.closest(".card").dataset.path, item=items.find(i=>i.path===path); if(!item) return;
+    if(b.dataset.act==="read"){
+      read.has(path)?read.delete(path):read.add(path); store.set("read",[...read]);
+      const on=read.has(path); b.setAttribute("aria-pressed",String(on)); b.closest(".card").classList.toggle("done",on); updateStats();
+    } else {
+      if(path==="#"){ return; }
+      const url=path.split("/").map(encodeURIComponent).join("/");
+      if(matchMedia("(max-width:760px)").matches){ window.open(url,"_blank","noopener"); return; }
+      $("vTitle").textContent=prettify(item.name); $("vOpen").href=url; $("vFrame").src=url; $("viewer").hidden=false; $("vClose").focus();
+    }
+  });
+  function closeViewer(){ $("viewer").hidden=true; $("vFrame").removeAttribute("src"); }
+  $("vClose").addEventListener("click",closeViewer);
+  $("viewer").addEventListener("click",e=>{ if(e.target===$("viewer")) closeViewer(); });
+
+  load();
+})();
+</script>
+</body>
+</html>
