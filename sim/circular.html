@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>การเคลื่อนที่แบบวงกลม</title>
+<meta name="description" content="แบบจำลองการเคลื่อนที่แบบวงกลมในระนาบดิ่งและระนาบระดับ พร้อม free body diagram">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317202f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%233dd6b5' stroke-width='3'/%3E%3Ccircle cx='24' cy='16' r='3' fill='%23ff7a98'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: lab bench — big animation stage beside a live free-body diagram, readouts under it, then controls, formulas and a graph */
+:root{
+  --bg:#f3f5fa;--grid:rgba(40,60,120,.07);--paper:#ffffff;--ink:#18203a;--muted:#5f6b86;--line:#dfe4ee;--soft:#eef1f7;
+  --accent:#e04f74;
+  --fw:#d27419;   /* weight mg */
+  --ft:#0d9a7f;   /* tension T */
+  --fn:#3563d6;   /* normal N */
+  --ff:#e04f74;   /* friction f */
+  --fv:#7b55e8;   /* velocity v */
+  --shadow:0 1px 0 var(--line),0 18px 40px -26px rgba(24,32,58,.45);
+  --sans:"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f121b;--grid:rgba(140,170,255,.05);--paper:#161b27;--ink:#e7ebf5;--muted:#8f99b0;--line:#262d3e;--soft:#1d2332;
+    --accent:#ff7a98;--fw:#ffaa55;--ft:#3dd6b5;--fn:#7ea2ff;--ff:#ff7a98;--fv:#b39bff;
+    --shadow:0 1px 0 var(--line),0 18px 40px -24px rgba(0,0,0,.8);color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f121b;--grid:rgba(140,170,255,.05);--paper:#161b27;--ink:#e7ebf5;--muted:#8f99b0;--line:#262d3e;--soft:#1d2332;
+  --accent:#ff7a98;--fw:#ffaa55;--ft:#3dd6b5;--fn:#7ea2ff;--ff:#ff7a98;--fv:#b39bff;
+  --shadow:0 1px 0 var(--line),0 18px 40px -24px rgba(0,0,0,.8);color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0;background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;
+  padding-inline:max(16px,env(safe-area-inset-left));
+  padding-block:calc(20px + env(safe-area-inset-top)) calc(56px + env(safe-area-inset-bottom));
+}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:22px}
+h1,h2,h3{margin:0;text-wrap:balance}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.back{display:inline-flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none;font-size:.9rem}
+.back:hover{color:var(--ink)}
+.tbtn{border:1px solid var(--line);background:var(--paper);border-radius:999px;height:36px;padding:0 14px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem;color:var(--muted)}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+h1{font-size:clamp(1.9rem,5vw,2.8rem);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-top:4px}
+h1 .dot{color:var(--accent)}
+.lede{margin:6px 0 0;color:var(--muted);max-width:44em}
+
+.tabs{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px}
+.seg button{border:0;background:transparent;padding:8px 18px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.92rem;color:var(--muted);transition:background .2s,color .2s}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.sub button{font-weight:500;font-size:.88rem;padding:7px 14px}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lab{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);min-width:0}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.card-h h2{font-size:.95rem;font-weight:600}
+.card-h .k{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.stage{position:relative;aspect-ratio:4/3;max-width:100%}
+.stage canvas,.fbd canvas,.graph canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fbd{position:relative;aspect-ratio:1/1;max-width:100%}
+.graph{position:relative;height:220px}
+.status{position:absolute;top:12px;left:12px;font-family:var(--mono);font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--soft);color:var(--muted);pointer-events:none;transition:background .2s,color .2s}
+.status.ok{color:var(--ft)}
+.status.bad{background:var(--accent);color:var(--paper)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line);align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 14px;font-size:.88rem;font-weight:500;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn[aria-pressed="true"]{background:var(--soft);border-color:var(--ink)}
+.btn.warn{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.btn svg{width:14px;height:14px}
+.bar .grow{flex:1}
+
+.side{display:grid;gap:18px;min-width:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:16px;height:3px;border-radius:2px;display:inline-block}
+.reads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border-radius:0 0 18px 18px;overflow:hidden}
+.read{background:var(--paper);padding:10px 14px;min-width:0}
+.read .l{font-size:.75rem;color:var(--muted)}
+.read .v{font-family:var(--mono);font-size:1.15rem;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.read .v small{font-size:.75rem;color:var(--muted);font-weight:400;margin-left:3px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.controls{padding:6px 16px 16px;display:grid;gap:14px}
+.ctl{display:grid;gap:4px}
+.ctl .top{display:flex;justify-content:space-between;gap:10px;font-size:.88rem}
+.ctl .top output{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums}
+.ctl input[type=range]{width:100%;accent-color:var(--ink);height:24px}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets .lbl{font-size:.78rem;color:var(--muted);width:100%}
+.chip{border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:4px 12px;font-size:.82rem;cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.toggles{display:flex;flex-wrap:wrap;gap:14px;font-size:.88rem}
+.toggles label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.toggles input{accent-color:var(--ink);width:16px;height:16px}
+
+.explain{padding:6px 18px 18px;display:grid;gap:12px}
+.eq{font-family:var(--mono);font-size:.95rem;background:var(--soft);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.eq .hl{color:var(--accent);font-weight:600}
+.explain p{margin:0;font-size:.93rem}
+.explain ul{margin:0;padding-left:1.1em;display:grid;gap:6px;font-size:.93rem}
+.verdict{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;border:1px solid var(--line);font-size:.92rem}
+.verdict b{font-family:var(--mono)}
+.verdict.good{border-color:color-mix(in srgb,var(--ft) 50%,var(--line))}
+.verdict.bad{border-color:color-mix(in srgb,var(--accent) 60%,var(--line))}
+.dotc{width:10px;height:10px;border-radius:50%;flex:none;margin-top:7px}
+.c-w{color:var(--fw)}.c-t{color:var(--ft)}.c-n{color:var(--fn)}.c-f{color:var(--ff)}.c-v{color:var(--fv)}
+footer{font-family:var(--mono);font-size:.75rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav">
+    <a class="back" href="../"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>กลับไปสมุดสรุป</a>
+    <button class="tbtn" id="themeBtn"><span id="themeLbl">โหมดมืด</span></button>
+  </nav>
+
+  <header>
+    <div class="eyebrow">Physics · แบบจำลอง</div>
+    <h1>การเคลื่อนที่แบบวงกลม<span class="dot">.</span></h1>
+    <p class="lede">ปรับค่าแล้วดูว่าแรงแต่ละตัวเปลี่ยนยังไง ลูกศรใน free body diagram ยาวตามขนาดแรงจริง จำไว้ว่าแรงสู่ศูนย์กลางไม่ใช่แรงตัวใหม่ แต่เป็นผลรวมของแรงที่มีอยู่แล้วในทิศเข้าหาศูนย์กลาง</p>
+  </header>
+
+  <div class="tabs">
+    <div class="seg" id="mainSeg" role="group" aria-label="เลือกระนาบ">
+      <button data-m="vertical" aria-pressed="true">ระนาบดิ่ง</button>
+      <button data-m="horizontal" aria-pressed="false">ระนาบระดับ</button>
+    </div>
+    <div class="seg sub" id="subSeg" role="group" aria-label="เลือกสถานการณ์" hidden>
+      <button data-h="table" aria-pressed="true">บนโต๊ะลื่น</button>
+      <button data-h="cone" aria-pressed="false">ลูกตุ้มกรวย</button>
+      <button data-h="car" aria-pressed="false">รถเลี้ยวโค้ง</button>
+    </div>
+  </div>
+
+  <section class="lab">
+    <div class="card">
+      <div class="card-h"><h2 id="stageTitle">มุมมองการเคลื่อนที่</h2><span class="k" id="stageKind">side view</span></div>
+      <div class="stage"><canvas id="stage"></canvas><span class="status" id="status"></span></div>
+      <div class="bar">
+        <button class="btn primary" id="playBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg><span>หยุด</span></button>
+        <button class="btn" id="slowBtn" aria-pressed="false">สโลว์ ×0.25</button>
+        <button class="btn" id="resetBtn">เริ่มใหม่</button>
+        <span class="grow"></span>
+        <button class="btn warn" id="cutBtn" hidden>ตัดเชือก</button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <div class="card-h"><h2>Free body diagram</h2><span class="k" id="fbdKind">แรงที่กระทำต่อวัตถุ</span></div>
+        <div class="fbd"><canvas id="fbd"></canvas></div>
+        <div class="legend" id="legend"></div>
+        <div class="reads" id="reads"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lower">
+    <div class="card">
+      <div class="card-h"><h2>ปรับค่า</h2><span class="k">g = 9.8 m/s²</span></div>
+      <div class="controls" id="controls"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>อธิบาย</h2><span class="k" id="explainKind"></span></div>
+      <div class="explain" id="explain"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-h"><h2 id="graphTitle">กราฟ</h2><span class="k" id="graphKind"></span></div>
+    <div class="graph"><canvas id="graph"></canvas></div>
+  </section>
+
+  <footer><span>ΣF<sub>c</sub> = mv²/r = mω²r</span><span>a<sub>c</sub> = v²/r</span></footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const root=document.documentElement;
+const g=9.8, DEG=Math.PI/180;
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- theme ---------- */
+const C={};
+function readColors(){const cs=getComputedStyle(root);["bg","paper","ink","muted","line","soft","accent","fw","ft","fn","ff","fv"].forEach(k=>C[k]=cs.getPropertyValue("--"+k).trim());}
+function isDark(){const t=root.dataset.theme;return t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches}
+function syncTheme(){$("themeLbl").textContent=isDark()?"โหมดสว่าง":"โหมดมืด";readColors();}
+const st=store.get("theme",null); if(st) root.dataset.theme=st;
+$("themeBtn").onclick=()=>{root.dataset.theme=isDark()?"light":"dark";store.set("theme",root.dataset.theme);syncTheme();};
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",syncTheme);
+syncTheme();
+
+/* ---------- canvas helpers ---------- */
+const FONT='"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif', MONO='"IBM Plex Mono",ui-monospace,Menlo,monospace';
+function fit(cv){
+  const r=cv.getBoundingClientRect(), d=Math.min(2,window.devicePixelRatio||1);
+  const W=Math.round(r.width*d), H=Math.round(r.height*d);
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  const ctx=cv.getContext("2d"); ctx.setTransform(d,0,0,d,0,0); ctx.clearRect(0,0,r.width,r.height);
+  return {ctx,w:r.width,h:r.height};
+}
+function text(ctx,s,x,y,o={}){
+  ctx.save(); ctx.font=(o.weight||500)+" "+(o.size||13)+"px "+(o.mono?MONO:FONT);
+  ctx.textAlign=o.align||"center"; ctx.textBaseline=o.base||"middle";
+  if(o.halo!==false){ctx.lineWidth=4;ctx.strokeStyle=C.paper;ctx.lineJoin="round";ctx.strokeText(s,x,y);}
+  ctx.fillStyle=o.color||C.ink; ctx.fillText(s,x,y); ctx.restore();
+}
+function arrow(ctx,x,y,dx,dy,color,label,o={}){
+  const L=Math.hypot(dx,dy); if(L<2) return;
+  const ux=dx/L, uy=dy/L, hl=Math.min(o.head||12,L*.45), hw=hl*.55;
+  ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=o.w||3; ctx.lineCap="round";
+  if(o.dash) ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+dx-ux*hl*.7,y+dy-uy*hl*.7); ctx.stroke(); ctx.setLineDash([]);
+  const tx=x+dx, ty=y+dy;
+  ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(tx-ux*hl-uy*hw,ty-uy*hl+ux*hw); ctx.lineTo(tx-ux*hl+uy*hw,ty-uy*hl-ux*hw); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  if(label){ const off=o.off||16; text(ctx,label,tx+ux*off+(o.lx||0),ty+uy*off+(o.ly||0),{color,weight:600,size:o.size||13,mono:true}); }
+}
+function ball(ctx,x,y,r,color){
+  ctx.save(); ctx.fillStyle=color||C.ink; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  ctx.globalAlpha=.25; ctx.fillStyle=C.paper; ctx.beginPath(); ctx.arc(x-r*.35,y-r*.35,r*.35,0,Math.PI*2); ctx.fill(); ctx.restore();
+}
+function dashedCircle(ctx,x,y,r,col){ctx.save();ctx.strokeStyle=col||C.line;ctx.lineWidth=1.5;ctx.setLineDash([6,6]);ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();ctx.restore();}
+function line(ctx,x1,y1,x2,y2,col,w,dash){ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w||1.5;if(dash)ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();}
+const f2=(v,d=2)=>(Math.abs(v)<1e-9?0:v).toFixed(d);
+
+/* ---------- graph helper ---------- */
+function plot(cv,{fn,x0,x1,xcur,xlab,ylab,xticks,shadeNeg,ymin0=true,mark}){
+  const {ctx,w,h}=fit(cv), L=56,R=18,T=18,B=34, pw=w-L-R, ph=h-T-B;
+  const N=240, pts=[]; let ymin=ymin0?0:Infinity, ymax=-Infinity;
+  for(let i=0;i<=N;i++){const x=x0+(x1-x0)*i/N, y=fn(x); pts.push([x,y]); if(y!=null&&isFinite(y)){ymin=Math.min(ymin,y);ymax=Math.max(ymax,y);}}
+  if(!isFinite(ymax)){ymax=1;} if(ymax-ymin<1e-6) ymax=ymin+1;
+  const pad=(ymax-ymin)*.1; ymax+=pad; if(ymin<0) ymin-=pad;
+  const X=x=>L+(x-x0)/(x1-x0)*pw, Y=y=>T+(ymax-y)/(ymax-ymin)*ph;
+  // grid
+  ctx.strokeStyle=C.line; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const yv=ymin+(ymax-ymin)*i/4, yy=Y(yv); ctx.beginPath();ctx.moveTo(L,yy);ctx.lineTo(L+pw,yy);ctx.stroke(); text(ctx,f2(yv,yv>=100?0:1),L-8,yy,{align:"right",color:C.muted,size:11,mono:true,halo:false});}
+  (xticks||[]).forEach(([xv,lab])=>{const xx=X(xv); line(ctx,xx,T,xx,T+ph,C.line,1,[3,4]); text(ctx,lab,xx,T+ph+14,{color:C.muted,size:11,mono:true,halo:false});});
+  if(ymin<0){ const z=Y(0); line(ctx,L,z,L+pw,z,C.muted,1.2); if(shadeNeg){ctx.save();ctx.fillStyle=C.accent;ctx.globalAlpha=.08;ctx.fillRect(L,z,pw,T+ph-z);ctx.restore(); text(ctx,shadeNeg,L+pw-6,z+14,{align:"right",color:C.accent,size:11,halo:false});} }
+  // curve
+  ctx.save(); ctx.strokeStyle=C.ink; ctx.lineWidth=2.2; ctx.lineJoin="round"; ctx.beginPath(); let pen=false;
+  pts.forEach(([x,y])=>{ if(y==null||!isFinite(y)){pen=false;return;} pen?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y)); pen=true; }); ctx.stroke(); ctx.restore();
+  if(mark!=null){ const y=fn(xcur); if(y!=null&&isFinite(y)){ const px=X(xcur),py=Y(y);
+    line(ctx,px,py,px,T+ph,C.accent,1,[3,3]);
+    ctx.fillStyle=C.accent; ctx.beginPath(); ctx.arc(px,py,5.5,0,Math.PI*2); ctx.fill();
+    text(ctx,mark(y),Math.min(Math.max(px,L+40),L+pw-40),py-16,{color:C.accent,size:12,weight:600,mono:true}); } }
+  text(ctx,ylab,L-8,8,{align:"right",color:C.muted,size:11,halo:false});
+  text(ctx,xlab,L+pw,T+ph+28,{align:"right",color:C.muted,size:11,halo:false});
+}
+
+/* ================= MODELS ================= */
+const P={
+  vertical:{vb:8.0,r:1.0,m:0.5},
+  table:{v:3,r:1,m:0.5},
+  cone:{a:35,L:1.2,m:0.5},
+  car:{v:60,r:50,mu:0.7,m:1000}
+};
+let mode="vertical", hmode="table", running=!reduce, slow=false, showComp=true, showV=true;
+
+/* ---- vertical circle ---- */
+const V={th:0,om:0,att:true,p:{x:0,y:0},u:{x:0,y:0},trail:[]};
+function vReset(){V.th=0;V.om=P.vertical.vb/P.vertical.r;V.att=true;V.trail=[];}
+function vPos(){const r=P.vertical.r;return V.att?{x:r*Math.sin(V.th),y:-r*Math.cos(V.th)}:V.p;}
+function vVel(){if(V.att){const s=P.vertical.r*V.om;return{x:s*Math.cos(V.th),y:s*Math.sin(V.th)};}return V.u;}
+function vT(){const {r,m}=P.vertical;return V.att?Math.max(0,m*(r*V.om*V.om+g*Math.cos(V.th))):0;}
+function vStep(dt){
+  const {r,m}=P.vertical, n=Math.max(1,Math.ceil(dt/0.001)), h=dt/n;
+  for(let i=0;i<n;i++){
+    if(V.att){
+      V.om+=-(g/r)*Math.sin(V.th)*h; V.th+=V.om*h;
+      const T=m*(r*V.om*V.om+g*Math.cos(V.th));
+      if(T<-1e-6){ V.att=false; V.p={x:r*Math.sin(V.th),y:-r*Math.cos(V.th)}; const s=r*V.om; V.u={x:s*Math.cos(V.th),y:s*Math.sin(V.th)}; }
+    }else{
+      V.u.y-=g*h; V.p.x+=V.u.x*h; V.p.y+=V.u.y*h;
+      const d=Math.hypot(V.p.x,V.p.y);
+      if(d>=r&&(V.p.x*V.u.x+V.p.y*V.u.y)>0){ V.th=Math.atan2(V.p.x,-V.p.y); V.om=(V.u.x*Math.cos(V.th)+V.u.y*Math.sin(V.th))/r; V.att=true; }
+    }
+  }
+}
+function vAngleDeg(){const p=vPos();let a=Math.atan2(p.x,-p.y)/DEG;if(a<0)a+=360;return a;}
+
+/* ---- horizontal: table ---- */
+const TB={ph:0,cut:false,p:null,u:null,tCut:0};
+function tbReset(){TB.ph=0;TB.cut=false;}
+function tbStep(dt){
+  const {v,r}=P.table;
+  if(!TB.cut){TB.ph+=v/r*dt;}
+  else{TB.p.x+=TB.u.x*dt;TB.p.y+=TB.u.y*dt;TB.tCut+=dt; if(TB.tCut>2.2) tbReset();}
+}
+function tbCut(){ if(TB.cut) return; const {v,r}=P.table; TB.cut=true;TB.tCut=0; TB.p={x:r*Math.cos(TB.ph),y:r*Math.sin(TB.ph)}; TB.u={x:-v*Math.sin(TB.ph),y:v*Math.cos(TB.ph)}; }
+
+/* ---- horizontal: conical pendulum ---- */
+const CN={ph:0};
+function cone(){const {a,L,m}=P.cone, al=a*DEG, r=L*Math.sin(al), v=Math.sqrt(g*r*Math.tan(al)), T=m*g/Math.cos(al), per=2*Math.PI*Math.sqrt(L*Math.cos(al)/g);return {al,r,v,T,per,om:v/r};}
+function cnStep(dt){CN.ph+=cone().om*dt;}
+
+/* ---- horizontal: car ---- */
+const CR={p:{x:0,y:0},u:{x:0,y:0},slip:false,off:false,tOff:0,skid:[]};
+function carVals(){const {v,r,mu,m}=P.car, vs=v/3.6, need=m*vs*vs/r, fmax=mu*m*g, vmax=Math.sqrt(mu*g*r)*3.6;return{vs,need,fmax,vmax,m};}
+function crReset(){const {r}=P.car,{vs}=carVals();CR.p={x:r,y:0};CR.u={x:0,y:vs};CR.slip=false;CR.off=false;CR.tOff=0;CR.skid=[];}
+function crStep(dt){
+  const {r,mu}=P.car, n=Math.max(1,Math.ceil(dt/0.004)), h=dt/n;
+  for(let i=0;i<n;i++){
+    const s=Math.hypot(CR.u.x,CR.u.y), need=s*s/r, a=Math.min(need,mu*g);
+    CR.slip=need>mu*g+1e-9;
+    const nx=-CR.u.y/s, ny=CR.u.x/s;
+    CR.u.x+=nx*a*h; CR.u.y+=ny*a*h;
+    const k=s/Math.hypot(CR.u.x,CR.u.y); CR.u.x*=k; CR.u.y*=k;
+    CR.p.x+=CR.u.x*h; CR.p.y+=CR.u.y*h;
+    if(!CR.slip){const d=Math.hypot(CR.p.x,CR.p.y); CR.p.x*=r/d; CR.p.y*=r/d;}
+  }
+  if(CR.slip){CR.skid.push({...CR.p}); if(CR.skid.length>400) CR.skid.shift();}
+  const d=Math.hypot(CR.p.x,CR.p.y);
+  if(d>r*1.22) CR.off=true;
+  if(CR.off){CR.tOff+=dt; if(CR.tOff>1.6) crReset();}
+}
+
+/* ================= UI BUILD ================= */
+const CTL={
+  vertical:[["vb","ความเร็วที่จุดต่ำสุด v₀",0,12,0.1,"m/s"],["r","รัศมี r",0.5,1.5,0.05,"m"],["m","มวล m",0.1,2,0.1,"kg"]],
+  table:[["v","อัตราเร็ว v",0.5,8,0.1,"m/s"],["r","รัศมี r (ความยาวเชือก)",0.3,1.5,0.05,"m"],["m","มวล m",0.1,2,0.1,"kg"]],
+  cone:[["a","มุมเชือกกับแนวดิ่ง θ",5,75,1,"°"],["L","ความยาวเชือก L",0.5,2,0.05,"m"],["m","มวล m",0.1,2,0.1,"kg"]],
+  car:[["v","อัตราเร็วรถ v",10,150,1,"km/h"],["r","รัศมีโค้ง r",20,200,1,"m"],["mu","สัมประสิทธิ์แรงเสียดทาน μ",0.05,1,0.01,""]]
+};
+function key(){return mode==="vertical"?"vertical":hmode;}
+function fmtCtl(id,v){return id==="m"&&key()==="car"?v:(id==="mu"?(+v).toFixed(2):id==="a"||(id==="v"&&key()==="car")||(id==="r"&&key()==="car")?Math.round(v):(+v).toFixed(2));}
+function buildControls(){
+  const k=key(), box=$("controls");
+  let html=CTL[k].map(([id,lab,mn,mx,stp,u])=>`<div class="ctl"><div class="top"><label for="c_${k}_${id}">${lab}</label><output id="o_${id}">${fmtCtl(id,P[k][id])} ${u}</output></div><input type="range" id="c_${k}_${id}" data-id="${id}" min="${mn}" max="${mx}" step="${stp}" value="${P[k][id]}"></div>`).join("");
+  if(k==="vertical") html+=`<div class="presets"><span class="lbl">ลองสถานการณ์</span>
+    <button class="chip" data-p="loop">วนครบรอบ</button><button class="chip" data-p="crit">พอดีค่าวิกฤต √(5gr)</button><button class="chip" data-p="slack">เชือกหย่อนกลางทาง</button><button class="chip" data-p="swing">แกว่งไปมา</button></div>`;
+  if(k==="car") html+=`<div class="presets"><span class="lbl">สภาพถนน</span>
+    <button class="chip" data-mu="0.7">ถนนแห้ง 0.7</button><button class="chip" data-mu="0.4">ถนนเปียก 0.4</button><button class="chip" data-mu="0.1">น้ำแข็ง 0.1</button></div>`;
+  html+=`<div class="toggles">${k!=="car"?`<label><input type="checkbox" id="tgComp" ${showComp?"checked":""}> แสดงองค์ประกอบของแรง</label>`:""}<label><input type="checkbox" id="tgV" ${showV?"checked":""}> แสดงความเร็ว v</label></div>`;
+  box.innerHTML=html;
+  box.querySelectorAll("input[type=range]").forEach(inp=>inp.addEventListener("input",()=>{
+    const id=inp.dataset.id; P[k][id]=+inp.value; $("o_"+id).textContent=fmtCtl(id,inp.value)+" "+CTL[k].find(c=>c[0]===id)[5]; resetMode(); explain();
+  }));
+  box.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{
+    const r=P.vertical.r, pv={loop:Math.sqrt(5*g*r)*1.2,crit:Math.sqrt(5*g*r)+0.01,slack:Math.sqrt(3.6*g*r),swing:Math.sqrt(1.1*g*r)}[b.dataset.p];
+    P.vertical.vb=Math.round(pv*100)/100; buildControls(); resetMode(); explain();
+  });
+  box.querySelectorAll("[data-mu]").forEach(b=>b.onclick=()=>{P.car.mu=+b.dataset.mu; buildControls(); resetMode(); explain();});
+  const tc=$("tgComp"); if(tc) tc.onchange=()=>{showComp=tc.checked;};
+  $("tgV").onchange=e=>{showV=e.target.checked;};
+}
+function resetMode(){({vertical:vReset,table:tbReset,cone:()=>{CN.ph=0},car:crReset})[key()]();}
+
+const LEG={w:["--fw","น้ำหนัก mg"],t:["--ft","แรงตึงเชือก T"],n:["--fn","แรงปฏิกิริยาตั้งฉาก N"],f:["--ff","แรงเสียดทาน f"],v:["--fv","ความเร็ว v (ไม่ใช่แรง)"],c:["--ink","แรงลัพธ์สู่ศูนย์กลาง"]};
+function buildChrome(){
+  const k=key();
+  const legendKeys={vertical:"wtcv",table:"wntcv",cone:"wtcv",car:"wnfcv"}[k];
+  $("legend").innerHTML=[...legendKeys].map(c=>`<span><i style="background:var(${LEG[c][0]})${c==="c"?";background:repeating-linear-gradient(90deg,var(--ink) 0 4px,transparent 4px 7px)":""}"></i>${LEG[c][1]}</span>`).join("");
+  const reads={
+    vertical:[["มุมจากจุดต่ำสุด θ","°"],["อัตราเร็ว v","m/s"],["แรงตึงเชือก T","N"],["น้ำหนัก mg","N"],["แรงสู่ศูนย์กลาง mv²/r","N"],["ความสูงจากจุดต่ำสุด","m"]],
+    table:[["แรงตึงเชือก T","N"],["ความเร่งสู่ศูนย์กลาง","m/s²"],["N = mg","N"],["คาบ","s"]],
+    cone:[["รัศมีวงกลม r","m"],["อัตราเร็ว v","m/s"],["แรงตึงเชือก T","N"],["คาบ","s"]],
+    car:[["แรงเสียดทานที่ต้องใช้","N"],["แรงเสียดทานสูงสุด μN","N"],["อัตราเร็วสูงสุดที่โค้งนี้","km/h"],["สถานะ",""]]
+  }[k];
+  $("reads").innerHTML=reads.map(([l,u],i)=>`<div class="read"><div class="l">${l}</div><div class="v"><span id="rv${i}">–</span><small>${u}</small></div></div>`).join("");
+  $("stageKind").textContent={vertical:"มองจากด้านข้าง",table:"มองจากด้านบน",cone:"มุมมองสามมิติ",car:"มองจากด้านบน"}[k];
+  $("fbdKind").textContent={vertical:"มองจากด้านข้าง",table:"มองจากด้านข้าง",cone:"มองจากด้านข้าง",car:"มองจากท้ายรถ"}[k];
+  $("cutBtn").hidden=k!=="table";
+  $("graphTitle").textContent={vertical:"แรงตึงเชือกตลอดหนึ่งรอบ",table:"แรงตึงเชือกเมื่อเพิ่มความเร็ว",cone:"แรงตึงเชือกเมื่อมุมกว้างขึ้น",car:"แรงเสียดทานที่ต้องใช้ เทียบกับความเร็ว"}[k];
+  $("graphKind").textContent={vertical:"T(θ)",table:"T = mv²/r",cone:"T = mg / cos θ",car:"f = mv²/r"}[k];
+}
+function setRead(i,v){const el=$("rv"+i); if(el && el.textContent!==v) el.textContent=v;}
+
+/* ================= EXPLAIN ================= */
+function explain(){
+  const k=key(), el=$("explain");
+  if(k==="vertical"){
+    const {vb,r,m}=P.vertical, vtopMin=Math.sqrt(g*r), vbMin=Math.sqrt(5*g*r), ok=vb>=vbMin-1e-9, vtop2=vb*vb-4*g*r;
+    let verdict;
+    if(ok) verdict=`<div class="verdict good"><span class="dotc" style="background:var(--ft)"></span><div>v₀ = <b>${f2(vb)}</b> ≥ √(5gr) = <b>${f2(vbMin)}</b> m/s ลูกบอลวนครบรอบ ที่จุดสูงสุดยังเหลือ v = <b>${f2(Math.sqrt(Math.max(0,vtop2)))}</b> m/s และเชือกยังตึง (T = <b>${f2(m*Math.max(0,vtop2)/r-m*g)}</b> N)</div></div>`;
+    else if(vb>Math.sqrt(2*g*r)) verdict=`<div class="verdict bad"><span class="dotc" style="background:var(--accent)"></span><div>v₀ = <b>${f2(vb)}</b> น้อยกว่า √(5gr) = <b>${f2(vbMin)}</b> m/s ลูกบอลขึ้นเลยแนวระดับไปได้ แต่ก่อนถึงจุดสูงสุด T จะลดลงจนเป็นศูนย์ เชือกหย่อน แล้วลูกบอลตกแบบโพรเจกไทล์</div></div>`;
+    else verdict=`<div class="verdict"><span class="dotc" style="background:var(--muted)"></span><div>v₀ = <b>${f2(vb)}</b> ≤ √(2gr) = <b>${f2(Math.sqrt(2*g*r))}</b> m/s ลูกบอลขึ้นไม่ถึงแนวระดับของจุดศูนย์กลาง จึงแกว่งไปมาเหมือนลูกตุ้ม เชือกตึงตลอด</div></div>`;
+    el.innerHTML=`
+      <p>ตั้งแกนเข้าหาศูนย์กลางเป็นบวก แล้วแยก mg ออกเป็นสองส่วน (θ วัดจากจุดต่ำสุด)</p>
+      <div class="eq"><span class="c-t">T</span> − <span class="c-w">mg</span> cos θ = mv²/r</div>
+      <ul>
+        <li>ที่<b>จุดต่ำสุด</b> (θ = 0°): <span class="eq" style="display:inline;padding:2px 6px">T = mv²/r + mg</span> เชือกตึงมากที่สุด</li>
+        <li>ที่<b>จุดสูงสุด</b> (θ = 180°): <span class="eq" style="display:inline;padding:2px 6px">T = mv²/r − mg</span> เชือกตึงน้อยที่สุด</li>
+        <li>เชือกต้องตึง (T ≥ 0) จึงได้ v<sub>บน</sub> ≥ √(gr) = <b>${f2(vtopMin)}</b> m/s และจากพลังงาน v₀² = v<sub>บน</sub>² + 4gr จึงต้องมี v₀ ≥ √(5gr)</li>
+        <li><span class="c-w">mg sin θ</span> ตามแนวสัมผัสทำให้ลูกบอลช้าลงตอนขึ้น และเร็วขึ้นตอนลง</li>
+      </ul>${verdict}`;
+  }
+  if(k==="table"){
+    const {v,r,m}=P.table;
+    el.innerHTML=`
+      <p>วัตถุวิ่งเป็นวงกลมบนโต๊ะลื่น โดยมีเชือกผูกกับหมุดตรงกลาง</p>
+      <div class="eq"><span class="c-n">N</span> = <span class="c-w">mg</span>&nbsp;&nbsp;(แนวดิ่งหักล้างกัน)</div>
+      <div class="eq"><span class="c-t">T</span> = mv²/r = ${f2(m)}×${f2(v)}²/${f2(r)} = <span class="hl">${f2(m*v*v/r)} N</span></div>
+      <ul>
+        <li>แรงที่ดึงเข้าศูนย์กลางมีแค่ T ตัวเดียว T จึงเป็นแรงสู่ศูนย์กลางทั้งหมด</li>
+        <li>เพิ่ม v สองเท่า T เพิ่มสี่เท่า ดูได้จากกราฟด้านล่าง</li>
+        <li>ลองกด <b>ตัดเชือก</b> วัตถุจะพุ่งออกไปในแนวเส้นสัมผัส ไม่ได้พุ่งออกจากศูนย์กลาง เพราะไม่มีแรงลัพธ์แล้ว จึงเคลื่อนที่เป็นเส้นตรงตามกฎข้อที่ 1</li>
+      </ul>`;
+  }
+  if(k==="cone"){
+    const c=cone(), {m,L}=P.cone;
+    el.innerHTML=`
+      <p>ลูกตุ้มแขวนจากเพดาน หมุนเป็นวงกลมในระนาบระดับ เชือกทำมุม θ กับแนวดิ่ง แยก T เป็นสององค์ประกอบ</p>
+      <div class="eq">แนวดิ่ง: <span class="c-t">T cos θ</span> = <span class="c-w">mg</span></div>
+      <div class="eq">เข้าศูนย์กลาง: <span class="c-t">T sin θ</span> = mv²/r</div>
+      <div class="eq">หารกัน → tan θ = v²/(rg)&nbsp;&nbsp;→ v = √(rg tan θ) = <span class="hl">${f2(c.v)} m/s</span></div>
+      <ul>
+        <li>r = L sin θ = ${f2(L)}×sin ${P.cone.a}° = <b>${f2(c.r)}</b> m</li>
+        <li>T = mg / cos θ = <b>${f2(c.T)}</b> N ยิ่งมุมกว้าง เชือกยิ่งตึง และไม่มีทางทำให้เชือกอยู่ในแนวระดับได้ (θ = 90° ต้องใช้ T เป็นอนันต์)</li>
+        <li>คาบ = 2π√(L cos θ / g) = <b>${f2(c.per)}</b> s ไม่ขึ้นกับมวล</li>
+      </ul>`;
+  }
+  if(k==="car"){
+    const cv=carVals(), {mu,r,v}=P.car, ok=cv.need<=cv.fmax;
+    el.innerHTML=`
+      <p>บนถนนราบ แรงที่ทำให้รถเลี้ยวได้มาจากแรงเสียดทานระหว่างยางกับถนนเพียงอย่างเดียว ทิศของแรงชี้เข้าหาศูนย์กลางโค้ง</p>
+      <div class="eq"><span class="c-n">N</span> = <span class="c-w">mg</span>&nbsp;&nbsp;,&nbsp;&nbsp;<span class="c-f">f</span> = mv²/r ≤ μN</div>
+      <div class="eq">v<sub>max</sub> = √(μgr) = √(${f2(mu)}×9.8×${r}) = <span class="hl">${f2(cv.vmax/3.6)} m/s ≈ ${Math.round(cv.vmax)} km/h</span></div>
+      <ul>
+        <li>ความเร็วสูงสุดไม่ขึ้นกับมวลรถ รถเล็กหรือรถบรรทุกก็ไถลที่ความเร็วเดียวกัน</li>
+        <li>ถนนเปียกหรือเป็นน้ำแข็ง μ ลดลง ความเร็วที่ปลอดภัยจึงลดลงตาม</li>
+      </ul>
+      <div class="verdict ${ok?"good":"bad"}"><span class="dotc" style="background:var(${ok?"--ft":"--accent"})"></span><div>${ok
+        ?`ที่ ${v} km/h ต้องใช้แรงเสียดทาน <b>${Math.round(cv.need)}</b> N ซึ่งไม่เกินค่าสูงสุด <b>${Math.round(cv.fmax)}</b> N รถเลี้ยวผ่านโค้งได้`
+        :`ที่ ${v} km/h ต้องใช้แรงเสียดทาน <b>${Math.round(cv.need)}</b> N แต่ถนนให้ได้มากสุด <b>${Math.round(cv.fmax)}</b> N แรงไม่พอ รถจึงไถลออกนอกโค้ง`}</div></div>`;
+  }
+  $("explainKind").textContent={vertical:"ระนาบดิ่ง",table:"โต๊ะลื่น",cone:"ลูกตุ้มกรวย",car:"รถเลี้ยวโค้ง"}[k];
+}
+
+/* ================= DRAW ================= */
+function status(txt,cls){const s=$("status"); if(s.textContent!==txt) s.textContent=txt; s.className="status "+(cls||"");}
+
+function drawVertical(){
+  const {r,m,vb}=P.vertical;
+  // stage
+  { const {ctx,w,h}=fit($("stage")), s=Math.min(w,h)*0.4/1.5, cx=w/2, cy=h/2;
+    const X=x=>cx+x*s, Y=y=>cy-y*s;
+    dashedCircle(ctx,cx,cy,r*s);
+    text(ctx,"จุดสูงสุด",cx,cy-r*s-16,{color:C.muted,size:12});
+    text(ctx,"จุดต่ำสุด",cx,cy+r*s+18,{color:C.muted,size:12});
+    // trail
+    const p=vPos(); V.trail.push({x:p.x,y:p.y}); if(V.trail.length>90) V.trail.shift();
+    ctx.save(); ctx.lineCap="round";
+    for(let i=1;i<V.trail.length;i++){ctx.strokeStyle=C.fv;ctx.globalAlpha=i/V.trail.length*.45;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(X(V.trail[i-1].x),Y(V.trail[i-1].y));ctx.lineTo(X(V.trail[i].x),Y(V.trail[i].y));ctx.stroke();}
+    ctx.restore();
+    // angle arc
+    const th=vAngleDeg()*DEG;
+    ctx.save(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(cx,cy,28,Math.PI/2,Math.PI/2-th,true); ctx.stroke(); ctx.restore();
+    line(ctx,cx,cy,cx,cy+r*s,C.line,1.2,[4,4]);
+    text(ctx,"θ "+Math.round(th/DEG)+"°",cx+ (th<Math.PI?-30:30),cy+40,{color:C.muted,size:11,mono:true});
+    // string
+    const bx=X(p.x), by=Y(p.y);
+    ctx.save(); ctx.strokeStyle=C.ft; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(cx,cy);
+    if(V.att) ctx.lineTo(bx,by);
+    else { const d=Math.hypot(p.x,p.y)*s, sag=Math.max(6,(r*s-d)*0.9); ctx.quadraticCurveTo((cx+bx)/2,(cy+by)/2+sag,bx,by); }
+    ctx.stroke(); ctx.restore();
+    ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
+    ball(ctx,bx,by,13,C.ink);
+    if(showV){ const v=vVel(), kv=60/Math.max(4,vb); arrow(ctx,bx,by,v.x*kv,-v.y*kv,C.fv,"v",{w:2.5}); }
+    if(V.att) status("เชือกตึง  T = "+f2(vT())+" N","ok"); else status("เชือกหย่อน! T = 0","bad");
+  }
+  // fbd
+  { const {ctx,w,h}=fit($("fbd")), cx=w/2, cy=h/2, maxL=Math.min(w,h)*0.38;
+    const p=vPos(), d=Math.hypot(p.x,p.y)||1, nx=-p.x/d, ny=-p.y/d; // toward center (y-up)
+    const W=m*g, T=vT(), Fref=Math.max(m*vb*vb/r+W, W*1.5), k=maxL/Fref, kW=Math.max(k,48/W);
+    // center direction guide
+    line(ctx,cx,cy,cx+nx*maxL*1.05,cy-ny*maxL*1.05,C.line,1.2,[4,5]);
+    text(ctx,"→ ศูนย์กลาง",cx+nx*(maxL*1.05+4),cy-ny*(maxL*1.05+4)+(ny>0?-10:10),{color:C.muted,size:11});
+    ball(ctx,cx,cy,14,C.ink);
+    if(showComp && V.att){
+      const rad=-W*ny, rx=nx*rad, ry=ny*rad, tx=-rx, ty=-W-ry;
+      arrow(ctx,cx,cy,rx*kW,-ry*kW,C.fw,Math.abs(rad)>W*0.15?"mg cosθ":"",{dash:true,w:2,size:11,off:26});
+      arrow(ctx,cx,cy,tx*kW,-ty*kW,C.fw,Math.hypot(tx,ty)>W*0.15?"mg sinθ":"",{dash:true,w:2,size:11,off:26});
+    }
+    arrow(ctx,cx,cy,0,W*kW,C.fw,"mg "+f2(W,1)+" N",{off:18});
+    if(V.att){
+      arrow(ctx,cx,cy,nx*T*k,-ny*T*k,C.ft,"T "+f2(T,1)+" N",{off:22});
+      const Fc=m*r*V.om*V.om, ox=ny*26, oy=nx*26;
+      arrow(ctx,cx+ox,cy+oy,nx*Fc*k,-ny*Fc*k,C.ink,"ΣF = mv²/r",{dash:true,w:2,size:11,off:18,lx:ox*0.6,ly:oy*0.6});
+    }
+    if(kW>k+1e-9) text(ctx,"* ลูกศร mg ขยายขึ้นให้มองเห็น ดูขนาดจริงจากตัวเลข",12,h-14,{align:"left",color:C.muted,size:10.5,halo:false});
+    if(showV){ const v=vVel(), sp=Math.hypot(v.x,v.y); if(sp>0.05){ arrow(ctx,cx,cy,v.x/sp*maxL*0.45,-v.y/sp*maxL*0.45,C.fv,"v",{w:2,dash:true}); } }
+  }
+  const v=vVel(), sp=Math.hypot(v.x,v.y), p=vPos();
+  setRead(0,String(Math.round(vAngleDeg()))); setRead(1,f2(sp)); setRead(2,f2(vT())); setRead(3,f2(m*g));
+  setRead(4,V.att?f2(m*sp*sp/r):"–"); setRead(5,f2(p.y+r));
+  // graph
+  plot($("graph"),{fn:x=>{const t=x*DEG,v2=vb*vb-2*g*r*(1-Math.cos(t)); return v2<0?null:m*v2/r+m*g*Math.cos(t);},x0:0,x1:360,xcur:vAngleDeg(),
+    xticks:[[0,"ล่าง 0°"],[90,"90°"],[180,"บน 180°"],[270,"270°"],[360,"360°"]],xlab:"มุม θ",ylab:"T (N)",shadeNeg:"T < 0 → เชือกหย่อน",ymin0:true,
+    mark:V.att?(y=>"T = "+f2(Math.max(0,y))+" N"):null});
+}
+
+function drawTable(){
+  const {v,r,m}=P.table, T=m*v*v/r;
+  { const {ctx,w,h}=fit($("stage")), s=Math.min(w,h)*0.4/1.5, cx=w/2, cy=h/2;
+    // table top
+    ctx.save(); ctx.fillStyle=C.soft; const tw=Math.min(w-30,1.5*s*2+90), th=Math.min(h-30,1.5*s*2+60);
+    ctx.beginPath(); ctx.roundRect? ctx.roundRect(cx-tw/2,cy-th/2,tw,th,18):ctx.rect(cx-tw/2,cy-th/2,tw,th); ctx.fill(); ctx.restore();
+    text(ctx,"โต๊ะลื่น (มองจากด้านบน)",cx-tw/2+12,cy-th/2+16,{align:"left",color:C.muted,size:11,halo:false});
+    dashedCircle(ctx,cx,cy,r*s);
+    let bx,by,vx,vy;
+    if(!TB.cut){ bx=cx+r*s*Math.cos(TB.ph); by=cy-r*s*Math.sin(TB.ph); vx=-Math.sin(TB.ph); vy=-Math.cos(TB.ph);
+      line(ctx,cx,cy,bx,by,C.ft,2.2); }
+    else { bx=cx+TB.p.x*s; by=cy-TB.p.y*s; vx=TB.u.x/v; vy=-TB.u.y/v;
+      // cut string stub
+      const a=Math.atan2(-(by-cy),bx-cx); line(ctx,cx,cy,cx+Math.cos(TB.ph)*r*s*0.35,cy-Math.sin(TB.ph)*r*s*0.35,C.ft,2.2);
+      ctx.save();ctx.strokeStyle=C.accent;ctx.globalAlpha=.6;ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(cx+r*s*Math.cos(TB.ph),cy-r*s*Math.sin(TB.ph));ctx.lineTo(bx,by);ctx.stroke();ctx.restore(); }
+    ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
+    ball(ctx,bx,by,12,C.ink);
+    if(showV) arrow(ctx,bx,by,vx*50,vy*50,C.fv,"v",{w:2.5});
+    if(!TB.cut) arrow(ctx,bx,by,(cx-bx)/(r*s)*Math.min(r*s*.7,20+T*4),(cy-by)/(r*s)*Math.min(r*s*.7,20+T*4),C.ft,"T",{w:2.5,off:14});
+    status(TB.cut?"ตัดเชือกแล้ว: ไม่มีแรงลัพธ์ → เคลื่อนที่เป็นเส้นตรง":"T = "+f2(T)+" N",TB.cut?"bad":"ok");
+  }
+  { const {ctx,w,h}=fit($("fbd")), cx=w/2+20, cy=h/2, maxL=Math.min(w,h)*0.36, W=m*g, Fref=Math.max(W,T), k=maxL/Fref;
+    line(ctx,cx-maxL*1.3,cy+15,cx+maxL*0.9,cy+15,C.muted,2);
+    text(ctx,"ผิวโต๊ะ",cx+maxL*0.9,cy+30,{align:"right",color:C.muted,size:11,halo:false});
+    text(ctx,"← ศูนย์กลาง",cx-maxL*1.25,cy+30,{align:"left",color:C.muted,size:11,halo:false});
+    ball(ctx,cx,cy,14,C.ink);
+    arrow(ctx,cx,cy,0,W*k,C.fw,"mg");
+    arrow(ctx,cx,cy,0,-W*k,C.fn,"N");
+    if(!TB.cut) arrow(ctx,cx,cy,-T*k,0,C.ft,"T = mv²/r",{off:40,ly:-14});
+    if(showV){ ctx.save(); ctx.strokeStyle=C.fv; ctx.fillStyle=C.fv; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,22,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.fill(); ctx.restore(); text(ctx,"v พุ่งออกจากจอ",cx+30,cy-26,{align:"left",color:C.fv,size:11}); }
+  }
+  setRead(0,f2(TB.cut?0:T)); setRead(1,f2(v*v/r)); setRead(2,f2(m*g)); setRead(3,f2(2*Math.PI*r/v));
+  plot($("graph"),{fn:x=>m*x*x/r,x0:0,x1:8,xcur:v,xticks:[[0,"0"],[2,"2"],[4,"4"],[6,"6"],[8,"8"]],xlab:"อัตราเร็ว v (m/s)",ylab:"T (N)",mark:y=>"T = "+f2(y)+" N"});
+}
+
+function drawCone(){
+  const c=cone(), {m,L}=P.cone;
+  { const {ctx,w,h}=fit($("stage")), s=Math.min((h*0.74)/Math.max(1.4,P.cone.L),(w*0.44)/Math.max(0.3,c.r)), cx=w/2, py=h*0.1;
+    const ey=py+L*Math.cos(c.al)*s, rx=c.r*s, ry=rx*0.28;
+    // ceiling
+    line(ctx,cx-70,py,cx+70,py,C.ink,2.5);
+    for(let i=-60;i<=60;i+=12) line(ctx,cx+i,py,cx+i+8,py-8,C.muted,1);
+    line(ctx,cx,py,cx,ey+ry+30,C.line,1.2,[4,5]);
+    ctx.save(); ctx.strokeStyle=C.line; ctx.lineWidth=1.5; ctx.setLineDash([6,6]); ctx.beginPath(); ctx.ellipse(cx,ey,rx,ry,0,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    const bx=cx+rx*Math.cos(CN.ph), by=ey+ry*Math.sin(CN.ph), near=Math.sin(CN.ph);
+    ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(cx,ey,3,0,Math.PI*2); ctx.fill();
+    text(ctx,"r",cx+rx/2,ey-8,{color:C.muted,size:11,mono:true});
+    line(ctx,cx,ey,bx,by,C.muted,1,[2,3]);
+    // angle arc
+    ctx.save(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.2; ctx.beginPath(); const sa=Math.atan2(by-py,bx-cx); ctx.arc(cx,py,34,Math.min(Math.PI/2,sa),Math.max(Math.PI/2,sa)); ctx.stroke(); ctx.restore();
+    text(ctx,"θ",cx+(bx>cx?12:-12),py+48,{color:C.muted,size:12,mono:true});
+    line(ctx,cx,py,bx,by,C.ft,2.2);
+    ball(ctx,bx,by,11+3*near,C.ink);
+    if(showV){ const tx=-rx*Math.sin(CN.ph), ty=ry*Math.cos(CN.ph), tl=Math.hypot(tx,ty)||1; arrow(ctx,bx,by,tx/tl*48,ty/tl*48,C.fv,"v",{w:2.5}); }
+    status("θ = "+P.cone.a+"°  ·  v = "+f2(c.v)+" m/s","ok");
+  }
+  { const {ctx,w,h}=fit($("fbd")), cx=w/2+10, cy=h/2+10, maxL=Math.min(w,h)*0.36, W=m*g, k=maxL/c.T;
+    const tx=-Math.sin(c.al)*c.T*k, ty=-Math.cos(c.al)*c.T*k;
+    line(ctx,cx,cy,cx,cy-maxL*1.1,C.line,1.2,[4,5]);
+    text(ctx,"← ทิศเข้าศูนย์กลาง",16,20,{align:"left",color:C.muted,size:11,halo:false});
+    ball(ctx,cx,cy,14,C.ink);
+    arrow(ctx,cx,cy,0,W*k,C.fw,"mg");
+    arrow(ctx,cx,cy,tx,ty,C.ft,"T",{off:16});
+    if(showComp){
+      arrow(ctx,cx,cy,0,ty,C.ft,"T cosθ",{dash:true,w:2,size:11,off:14,lx:34});
+      arrow(ctx,cx,cy,tx,0,C.ft,"T sinθ",{dash:true,w:2,size:11,off:4,ly:-14,lx:-tx*0.5});
+      line(ctx,cx+tx,cy+ty,cx+tx,cy,C.line,1,[2,3]); line(ctx,cx+tx,cy+ty,cx,cy+ty,C.line,1,[2,3]);
+    }
+    arrow(ctx,cx,cy+26,tx,0,C.ink,"ΣF = mv²/r",{dash:true,w:2,size:11,off:4,ly:16,lx:-tx*0.5});
+    ctx.save(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(cx,cy,30,-Math.PI/2-c.al,-Math.PI/2); ctx.stroke(); ctx.restore();
+    text(ctx,"θ",cx-12,cy-40,{color:C.muted,size:12,mono:true});
+    if(showV){ ctx.save(); ctx.strokeStyle=C.fv; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,22,0,Math.PI*2); ctx.stroke(); ctx.fillStyle=C.fv; ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+  }
+  setRead(0,f2(c.r)); setRead(1,f2(c.v)); setRead(2,f2(c.T)); setRead(3,f2(c.per));
+  plot($("graph"),{fn:x=>m*g/Math.cos(x*DEG),x0:0,x1:80,xcur:P.cone.a,xticks:[[0,"0°"],[20,"20°"],[40,"40°"],[60,"60°"],[80,"80°"]],xlab:"มุม θ",ylab:"T (N)",mark:y=>"T = "+f2(y)+" N"});
+}
+
+function drawCar(){
+  const {r,mu}=P.car, cv=carVals();
+  { const {ctx,w,h}=fit($("stage")), R=Math.min(w,h)*0.36, s=R/r, cx=w/2, cy=h/2, rw=26;
+    ctx.save(); ctx.strokeStyle=C.soft; ctx.lineWidth=rw*2; ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.strokeStyle=C.line; ctx.lineWidth=1.5; [R-rw,R+rw].forEach(rr=>{ctx.beginPath();ctx.arc(cx,cy,rr,0,Math.PI*2);ctx.stroke();}); ctx.setLineDash([10,10]); ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    ctx.fillStyle=C.muted; ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
+    text(ctx,"r = "+r+" m",cx,cy+16,{color:C.muted,size:11,mono:true});
+    // skid marks
+    if(CR.skid.length>1){ctx.save();ctx.strokeStyle=C.accent;ctx.globalAlpha=.45;ctx.lineWidth=3;ctx.beginPath();CR.skid.forEach((q,i)=>{const x=cx+q.x*s,y=cy-q.y*s;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();ctx.restore();}
+    const x=cx+CR.p.x*s, y=cy-CR.p.y*s, ang=Math.atan2(-CR.u.y,CR.u.x);
+    ctx.save(); ctx.translate(x,y); ctx.rotate(ang);
+    ctx.fillStyle=CR.slip?C.accent:C.ink; ctx.beginPath(); ctx.roundRect?ctx.roundRect(-14,-8,28,16,4):ctx.rect(-14,-8,28,16); ctx.fill();
+    ctx.fillStyle=C.paper; ctx.globalAlpha=.7; ctx.fillRect(3,-6,6,12); ctx.restore();
+    if(showV){ const sp=Math.hypot(CR.u.x,CR.u.y)||1; arrow(ctx,x,y,CR.u.x/sp*52,-CR.u.y/sp*52,C.fv,"v",{w:2.5}); }
+    const d=Math.hypot(CR.p.x,CR.p.y)||1, fc=Math.min(cv.need,cv.fmax), fl=18+40*fc/Math.max(cv.need,cv.fmax);
+    if(!CR.off) arrow(ctx,x,y,-CR.p.x/d*fl,CR.p.y/d*fl,C.ff,"f",{w:2.5,off:12});
+    status(CR.off?"หลุดโค้ง!":CR.slip?"แรงเสียดทานไม่พอ รถกำลังไถล":"เลี้ยวได้ปกติ",CR.slip||CR.off?"bad":"ok");
+  }
+  { const {ctx,w,h}=fit($("fbd")), cx=w/2+18, cy=h/2+12, maxL=Math.min(w,h)*0.34, W=cv.m*g, Fref=Math.max(W,cv.need,cv.fmax), k=maxL/Fref;
+    const ground=cy+34;
+    line(ctx,20,ground,w-20,ground,C.muted,2);
+    text(ctx,"← ทิศเข้าศูนย์กลางโค้ง",16,20,{align:"left",color:C.muted,size:11,halo:false});
+    // car rear
+    ctx.save(); ctx.fillStyle=CR.slip?C.accent:C.ink;
+    ctx.beginPath(); ctx.roundRect?ctx.roundRect(cx-40,cy-22,80,44,10):ctx.rect(cx-40,cy-22,80,44); ctx.fill();
+    ctx.globalAlpha=.75; ctx.fillStyle=C.paper; ctx.fillRect(cx-28,cy-16,56,14); ctx.globalAlpha=1;
+    ctx.fillStyle=C.muted; ctx.fillRect(cx-42,ground-12,14,12); ctx.fillRect(cx+28,ground-12,14,12); ctx.restore();
+    arrow(ctx,cx,cy,0,W*k,C.fw,"mg",{off:16,lx:24});
+    arrow(ctx,cx,ground,0,-W*k,C.fn,"N",{off:14,lx:-16});
+    const f=Math.min(cv.need,cv.fmax);
+    const fl=Math.max(f*k,26);
+    arrow(ctx,cx-44,ground,-fl,0,C.ff,CR.slip?"f = μN (ไม่พอ)":"f",{off:10,ly:-16,lx:fl>90?fl/2:0});
+    if(CR.slip){ const nl=Math.max(cv.need*k,fl+10); arrow(ctx,cx-44,ground+18,-nl,0,C.ink,"ที่ต้องใช้ mv²/r",{dash:true,w:2,size:11,off:8,ly:16,lx:nl>110?nl/2:0}); }
+  }
+  setRead(0,String(Math.round(cv.need))); setRead(1,String(Math.round(cv.fmax))); setRead(2,String(Math.round(cv.vmax))); setRead(3,cv.need<=cv.fmax?"ผ่านโค้งได้":"ไถลออก");
+  plot($("graph"),{fn:x=>cv.m*(x/3.6)**2/r,x0:0,x1:150,xcur:P.car.v,xticks:[[0,"0"],[30,"30"],[60,"60"],[90,"90"],[120,"120"],[150,"150"]],xlab:"อัตราเร็ว (km/h)",ylab:"f (N)",mark:y=>"ต้องใช้ "+Math.round(y)+" N"});
+  // fmax line on graph
+  { const cvs=$("graph"), ctx=cvs.getContext("2d"), r2=cvs.getBoundingClientRect(); /* overlay drawn via second pass */ drawFmax(ctx,r2.width,r2.height,cv); }
+}
+function drawFmax(ctx,w,h,cv){
+  // recompute same scale as plot(): ymax from fn at 150 km/h with 10% pad
+  const L=56,R=18,T=18,B=34,pw=w-L-R,ph=h-T-B, ymax0=cv.m*(150/3.6)**2/P.car.r, ymax=ymax0*1.1;
+  if(cv.fmax>ymax) return;
+  const y=T+(ymax-cv.fmax)/ymax*ph;
+  line(ctx,L,y,L+pw,y,C.ft,2,[6,4]);
+  text(ctx,"μmg = "+Math.round(cv.fmax)+" N (สูงสุด)",L+6,y-10,{align:"left",color:C.ft,size:11,weight:600});
+  const xv=L+(cv.vmax/150)*pw; if(cv.vmax<=150){ ctx.fillStyle=C.ft; ctx.beginPath(); ctx.arc(xv,y,4.5,0,Math.PI*2); ctx.fill(); text(ctx,"v max "+Math.round(cv.vmax),xv,T+ph+28-14,{color:C.ft,size:10,mono:true}); }
+}
+
+/* ================= LOOP ================= */
+let last=performance.now();
+function frame(now){
+  let dt=Math.min(0.05,(now-last)/1000); last=now;
+  if(!running) dt=0; if(slow) dt*=0.25;
+  const k=key();
+  if(dt>0){ ({vertical:vStep,table:tbStep,cone:cnStep,car:crStep})[k](dt); }
+  ({vertical:drawVertical,table:drawTable,cone:drawCone,car:drawCar})[k]();
+  requestAnimationFrame(frame);
+}
+
+/* ================= EVENTS ================= */
+function setMode(m,h){
+  if(m) mode=m; if(h) hmode=h;
+  $("mainSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===mode)));
+  $("subSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.h===hmode)));
+  $("subSeg").hidden=mode!=="horizontal";
+  buildControls(); buildChrome(); explain(); resetMode();
+  try{history.replaceState(null,"","#"+(mode==="vertical"?"vertical":hmode));}catch(e){}
+}
+$("mainSeg").onclick=e=>{const b=e.target.closest("button"); if(b) setMode(b.dataset.m);};
+$("subSeg").onclick=e=>{const b=e.target.closest("button"); if(b) setMode(null,b.dataset.h);};
+function syncPlay(){ $("playBtn").querySelector("span").textContent=running?"หยุด":"เล่น";
+  $("playBtn").querySelector("svg").innerHTML=running?'<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>':'<path d="M7 4l13 8-13 8z"/>'; }
+$("playBtn").onclick=()=>{running=!running;syncPlay();};
+$("slowBtn").onclick=()=>{slow=!slow;$("slowBtn").setAttribute("aria-pressed",String(slow));};
+$("resetBtn").onclick=()=>resetMode();
+$("cutBtn").onclick=()=>{ if(!running){running=true;syncPlay();} tbCut(); };
+document.addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT") return; if(e.code==="Space"){e.preventDefault();running=!running;syncPlay();} });
+
+const hsh=location.hash.slice(1);
+if(hsh==="vertical") setMode("vertical"); else if(["table","cone","car"].includes(hsh)) setMode("horizontal",hsh); else setMode("vertical");
+syncPlay();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
