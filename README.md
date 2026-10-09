@@ -47,3 +47,28 @@
 - repo แบบ Public หมายความว่าใครมีลิงก์ก็เปิดอ่านได้
 - ไฟล์แต่ละไฟล์ต้องไม่เกิน 25 MB ถ้าอัปโหลดผ่านหน้าเว็บ GitHub
 - เครื่องหมาย "อ่านแล้ว" จะจำไว้ในเบราว์เซอร์ของเครื่องที่กดเท่านั้น
+
+## ระบบเข้าสู่ระบบด้วย Google (Firebase)
+
+ทำครั้งเดียว ประมาณ 10 นาที ระหว่างที่ยังไม่ได้ตั้งค่า เว็บจะทำงานเหมือนเดิมและไม่มีปุ่มเข้าสู่ระบบ
+
+1. เข้า https://console.firebase.google.com แล้วกด **Create a project** ตั้งชื่ออะไรก็ได้ (ปิด Google Analytics ได้)
+2. **Build → Authentication → Get started** แท็บ Sign-in method เลือก **Google** กด Enable เลือกอีเมลติดต่อ แล้วกด Save
+3. ยังอยู่ใน Authentication ไปแท็บ **Settings → Authorized domains** กด Add domain แล้วใส่ `jirakitt46.github.io`
+4. **Build → Firestore Database → Create database** เลือก location `asia-southeast1` (สิงคโปร์) แล้วเลือก **production mode**
+5. ใน Firestore ไปแท็บ **Rules** ลบของเดิมทั้งหมด วางเนื้อหาจากไฟล์ `firestore.rules` ใน repo นี้ แล้วกด **Publish**
+6. กดรูปเฟือง ⚙️ → **Project settings** เลื่อนลงไปที่ Your apps แล้วกดไอคอน **</>** (Web) ตั้งชื่อแอป แล้วกด Register
+7. จะเห็นโค้ด `firebaseConfig = { apiKey: "...", authDomain: "...", ... }` ให้คัดลอกค่าเหล่านี้ไปใส่ใน `site.json` ตรง `"firebase"`
+
+```json
+"firebase": {
+  "apiKey": "AIza...",
+  "authDomain": "ชื่อโปรเจกต์.firebaseapp.com",
+  "projectId": "ชื่อโปรเจกต์",
+  "appId": "1:...:web:..."
+}
+```
+
+ค่าเหล่านี้เปิดเผยในเว็บได้ ไม่ใช่รหัสลับ ส่วนที่กันไม่ให้คนอื่นอ่านข้อมูลของเรา คือกฎใน `firestore.rules` ที่กำหนดให้แต่ละคนอ่านและแก้ได้แค่ข้อมูลของตัวเอง
+
+ข้อมูลที่เก็บต่อคน: ชื่อผู้ใช้ รายการชีทที่อ่านแล้ว และหน้าที่อ่านค้างไว้ของแต่ละชีท

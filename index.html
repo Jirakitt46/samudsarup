@@ -149,6 +149,41 @@ h1 .dot{color:var(--accent)}
 .lab-link .go{margin-left:auto;font-family:var(--mono);font-size:.8rem;color:var(--phys);white-space:nowrap}
 @media (max-width:520px){.lab-link .go{display:none}}
 
+/* account */
+.acct{position:relative}
+.acct-btn{border:1px solid var(--line);background:var(--paper);border-radius:999px;height:36px;padding:0 6px 0 6px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem;color:var(--ink);max-width:200px}
+.acct-btn.login{padding:0 14px 0 10px;font-weight:500}
+.acct-btn .av{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-size:.8rem;font-weight:600;flex:none;overflow:hidden}
+.acct-btn .av img{width:100%;height:100%;object-fit:cover}
+.acct-btn .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
+.acct-btn svg{width:16px;height:16px;flex:none}
+.menu{position:absolute;right:0;top:calc(100% + 8px);min-width:220px;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;z-index:15;display:grid;animation:pop .18s ease}
+.menu .who{padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;min-width:0}
+.menu .who b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu .who span{font-size:.78rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.menu button{border:0;background:transparent;text-align:left;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:.9rem}
+.menu button:hover{background:var(--bg)}
+.menu button.danger{color:var(--accent)}
+.hello{margin:10px 0 0;font-size:.9rem;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hello b{color:var(--ink);font-weight:600}
+.sync{font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:999px;border:1px solid var(--line)}
+.sync.on{color:var(--phys);border-color:color-mix(in srgb,var(--phys) 40%,var(--line))}
+.linkbtn{border:0;background:none;padding:0;color:var(--phys);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.resume{font-family:var(--mono);font-size:.72rem;color:var(--phys)}
+.modal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fade .2s}
+.modal-box{width:min(420px,100%);background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:24px;display:grid;gap:14px;animation:pop .3s cubic-bezier(.2,.8,.2,1)}
+.modal-box h2{font-size:1.3rem;font-weight:700}
+.modal-box p{margin:0;color:var(--muted);font-size:.92rem}
+.modal-box label{font-size:.85rem;font-weight:600}
+.modal-box input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:11px 14px;font-size:1rem}
+.modal-box .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.modal-box .err{color:var(--accent);font-size:.85rem;min-height:1.2em}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:11px 14px;font-weight:600;cursor:pointer;font-size:.95rem}
+.gbtn:hover{background:var(--bg)}
+.gbtn svg{width:18px;height:18px}
+.btn[disabled]{opacity:.55;cursor:progress}
+@media (max-width:560px){#themeLbl,.acct-btn .nm{display:none}.acct-btn{padding:0 5px}.acct-btn.login{padding:0 12px 0 10px}.tbtn{padding:0 11px}.brand span{display:none}}
+
 /* viewer */
 .viewer{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fade .2s}
 .viewer-box{width:min(1000px,100%);height:100%;max-height:92vh;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);animation:pop .3s cubic-bezier(.2,.8,.2,1)}
@@ -192,6 +227,18 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
     </div>
     <div style="display:flex;gap:8px;align-items:center">
     <a class="tbtn" href="sim/circular.html" style="text-decoration:none;color:var(--ink)">แบบจำลอง</a>
+    <div class="acct" id="acct" hidden>
+      <button class="acct-btn login" id="loginBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+        <span>เข้าสู่ระบบ</span>
+      </button>
+      <button class="acct-btn" id="userBtn" hidden aria-haspopup="menu" aria-expanded="false"><span class="av" id="av"></span><span class="nm" id="uName"></span></button>
+      <div class="menu" id="menu" role="menu" hidden>
+        <div class="who"><b id="mName"></b><span id="mMail"></span></div>
+        <button role="menuitem" id="renameBtn">เปลี่ยนชื่อผู้ใช้</button>
+        <button role="menuitem" class="danger" id="logoutBtn">ออกจากระบบ</button>
+      </div>
+    </div>
     <button class="tbtn" id="themeBtn" aria-label="สลับโหมดสว่าง/มืด">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <span id="themeLbl">โหมดมืด</span>
@@ -204,6 +251,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
       <div class="eyebrow">Physics · Mathematics</div>
       <h1><span id="title">สมุดสรุป</span><span class="dot">.</span></h1>
       <p class="lede">รวมชีทสรุปฟิสิกส์กับคณิตศาสตร์ไว้ที่เดียว เปิดอ่านได้ทุกเมื่อ อ่านจบเรื่องไหนกดเครื่องหมายถูกเก็บไว้</p>
+      <p class="hello" id="hello" hidden></p>
       <div class="msg" id="msgBox" hidden><span class="lbl">note</span><p id="msg"></p></div>
       <div class="stats">
         <div class="stat"><b id="sTotal">0</b><span>ชีททั้งหมด</span></div>
@@ -250,6 +298,35 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
   </main>
 
   <footer><span id="foot">pdfs/physics · pdfs/math</span><span>Δx ≥ ħ / 2Δp</span></footer>
+</div>
+
+<div class="modal" id="loginModal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="lmTitle">
+    <h2 id="lmTitle">เข้าสู่ระบบ</h2>
+    <p>ใช้บัญชี Google เพื่อเก็บว่าอ่านชีทไหนไปแล้ว และอ่านถึงหน้าไหน เปิดจากเครื่องไหนก็เห็นเหมือนกัน</p>
+    <button class="gbtn" id="googleBtn">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+      เข้าสู่ระบบด้วย Google
+    </button>
+    <div class="err" id="loginErr"></div>
+    <div class="row"><button class="btn btn-ghost" id="loginCancel">ไว้ทีหลัง</button></div>
+  </div>
+</div>
+
+<div class="modal" id="nameModal" hidden>
+  <form class="modal-box" id="nameForm" role="dialog" aria-modal="true" aria-labelledby="nmTitle" novalidate>
+    <h2 id="nmTitle">ตั้งชื่อผู้ใช้</h2>
+    <p id="nmText">ชื่อนี้จะแสดงตอนเข้าใช้งาน เปลี่ยนทีหลังได้</p>
+    <div style="display:grid;gap:6px">
+      <label for="nameInput">ชื่อผู้ใช้</label>
+      <input id="nameInput" maxlength="24" autocomplete="nickname" placeholder="เช่น มิ้น">
+    </div>
+    <div class="err" id="nameErr"></div>
+    <div class="row">
+      <button type="button" class="btn btn-ghost" id="nameCancel" hidden>ยกเลิก</button>
+      <button type="submit" class="btn btn-open" id="nameSave">เริ่มใช้งาน</button>
+    </div>
+  </form>
 </div>
 
 <div class="viewer" id="viewer" hidden>
@@ -323,7 +400,8 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
   if(reduce){ phase=Math.PI/4; draw(); } else requestAnimationFrame(loop);
 
   /* ---------- data ---------- */
-  let items=[], filter="all", query="", read=new Set(store.get("read",[]));
+  let items=[], filter="all", query="", read=new Set(store.get("read",[])), pages=store.get("pages",{});
+  const pkey = path => { try{ return btoa(unescape(encodeURIComponent(path))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }catch(e){ return path.replace(/[^\w-]/g,"_"); } };
   const prettify = n => n.replace(/\.pdf$/i,"").replace(/^\d+[\s._-]+/,"").replace(/[_]+/g," ").trim();
   const fmtSize = b => !b ? "" : b>1048576 ? (b/1048576).toFixed(1)+" MB" : Math.max(1,Math.round(b/1024))+" KB";
   const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -350,6 +428,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
     if(cfg.title){ $("title").textContent=cfg.title; $("brandName").textContent=cfg.title; document.title=cfg.title; }
     if(cfg.message){ $("msg").textContent=cfg.message; $("msgBox").hidden=false; }
     const notes=cfg.notes||{};
+    initAuth(cfg.firebase);
     const repo=detectRepo(cfg);
 
     if(!repo){
@@ -406,7 +485,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
     const list=items.filter(i=>(filter==="all"||i.subject===filter) && (!q || (prettify(i.name)+" "+(i.topic||"")+" "+(i.note||"")).toLowerCase().includes(q)));
     let n={physics:0,math:0};
     $("grid").innerHTML=list.map((i,k)=>{
-      const s=SUBJ[i.subject], done=read.has(i.path); n[i.subject]++;
+      const s=SUBJ[i.subject], done=read.has(i.path), pg=pages[pkey(i.path)]||0; n[i.subject]++;
       const num=(i.name.match(/^(\d+)/)||[])[1];
       return `<article class="card ${s.cls} ${done?"done":""}" style="--i:${k}" data-path="${esc(i.path)}">
         <div class="card-top"><span class="tag">${s.tag}</span><span class="idx">${num?"#"+num.padStart(2,"0"):""}</span></div>
@@ -414,9 +493,9 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
         ${i.topic?`<div class="topic">${esc(i.topic)}</div>`:""}
         ${i.note?`<p class="note">${esc(i.note)}</p>`:""}
         <div class="card-foot">
-          <span class="size">${fmtSize(i.size)}</span>
+          <span class="size">${pg>1?`<span class="resume">ถึงหน้า ${pg}</span>`:fmtSize(i.size)}</span>
           <button class="check" data-act="read" aria-pressed="${done}" aria-label="${done?"อ่านแล้ว":"ทำเครื่องหมายว่าอ่านแล้ว"}" title="${done?"อ่านแล้ว":"อ่านแล้ว?"}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
-          <button class="btn btn-open" data-act="open">เปิดอ่าน</button>
+          <button class="btn btn-open" data-act="open">${pg>1?"อ่านต่อ":"เปิดอ่าน"}</button>
         </div>
       </article>`;
     }).join("");
@@ -461,12 +540,12 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
     const b=e.target.closest("[data-act]"); if(!b) return;
     const path=b.closest(".card").dataset.path, item=items.find(i=>i.path===path); if(!item) return;
     if(b.dataset.act==="read"){
-      read.has(path)?read.delete(path):read.add(path); store.set("read",[...read]);
-      const on=read.has(path); b.setAttribute("aria-pressed",String(on)); b.closest(".card").classList.toggle("done",on); updateStats();
+      const on=!read.has(path); on?read.add(path):read.delete(path);
+      saveRead(path,on); b.setAttribute("aria-pressed",String(on)); b.closest(".card").classList.toggle("done",on); updateStats();
     } else {
       if(path==="#"){ return; }
       const url=path.split("/").map(encodeURIComponent).join("/");
-      openViewer(prettify(item.name), url);
+      openViewer(prettify(item.name), url, path);
     }
   });
   /* ---------- PDF viewer (pdf.js: works on iPad / phones too) ---------- */
@@ -479,8 +558,9 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
       sc.onerror=rej; document.head.appendChild(sc); });
   }
   function vMsg(html){ $("vPages").innerHTML='<div class="vmsg">'+html+'</div>'; }
-  async function openViewer(title,url){
-    const token=++viewToken; zoom=1;
+  let curPath=null, curPage=1, savedPage=0, pgTimer=null;
+  async function openViewer(title,url,path){
+    const token=++viewToken; zoom=1; curPath=path; curPage=1; savedPage=pages[pkey(path)]||0;
     $("vTitle").textContent=title; $("vOpen").href=url; $("vPg").textContent="";
     $("viewer").hidden=false; document.body.style.overflow="hidden"; $("vClose").focus();
     vMsg('<div class="spin"></div><span>กำลังเปิดไฟล์…</span>');
@@ -489,6 +569,8 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
       const doc=await lib.getDocument({url,cMapUrl:PDFJS+"cmaps/",cMapPacked:true,standardFontDataUrl:PDFJS+"standard_fonts/"}).promise;
       if(token!==viewToken){ doc.destroy(); return; }
       pdfDoc=doc; await layoutPages();
+      const start=Math.min(savedPage||1, doc.numPages);
+      if(start>1){ const el=$("vPages").querySelector('.page[data-n="'+start+'"]'); if(el){ $("vPages").scrollTop=el.offsetTop-12; updatePg(); } }
     }catch(err){
       if(token!==viewToken) return;
       vMsg('<b style="color:var(--ink)">เปิดไฟล์ในหน้านี้ไม่ได้</b><span>ลองกด “ไฟล์ต้นฉบับ” ด้านบนเพื่อเปิดด้วยแอปของเครื่องแทน</span>');
@@ -525,6 +607,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
     if(!pdfDoc) return; const box=$("vPages"), mid=box.scrollTop+box.clientHeight/3; let n=1;
     box.querySelectorAll(".page").forEach(p=>{ if(p.offsetTop<=mid) n=+p.dataset.n; });
     $("vPg").textContent="หน้า "+n+" / "+pdfDoc.numPages;
+    if(n!==curPage){ curPage=n; clearTimeout(pgTimer); pgTimer=setTimeout(()=>savePage(curPath,curPage),2500); }
   }
   $("vPages").addEventListener("scroll",()=>requestAnimationFrame(updatePg),{passive:true});
   function setZoom(z){ if(!pdfDoc) return; const box=$("vPages"), frac=box.scrollTop/Math.max(1,box.scrollHeight);
@@ -532,9 +615,149 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-f
   $("zIn").addEventListener("click",()=>setZoom(zoom*1.25));
   $("zOut").addEventListener("click",()=>setZoom(zoom/1.25));
   let rT; addEventListener("resize",()=>{ if($("viewer").hidden||!pdfDoc) return; clearTimeout(rT); rT=setTimeout(()=>{viewToken++;layoutPages();},250); });
-  function closeViewer(){ $("viewer").hidden=true; document.body.style.overflow=""; viewToken++; if(io) io.disconnect(); $("vPages").innerHTML=""; if(pdfDoc){ pdfDoc.destroy(); pdfDoc=null; } }
+  function closeViewer(){ clearTimeout(pgTimer); if(curPath && pdfDoc) savePage(curPath,curPage); $("viewer").hidden=true; document.body.style.overflow=""; viewToken++; if(io) io.disconnect(); $("vPages").innerHTML=""; if(pdfDoc){ pdfDoc.destroy(); pdfDoc=null; } }
   $("vClose").addEventListener("click",closeViewer);
   $("viewer").addEventListener("click",e=>{ if(e.target===$("viewer")) closeViewer(); });
+
+  /* ---------- accounts (Firebase: Google sign-in + Firestore) ---------- */
+  const FB="https://www.gstatic.com/firebasejs/10.12.2/";
+  let fbAuth=null, fbDb=null, user=null, profile=null, unsub=null, lastFocus=null;
+  const loadScript=src=>new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src=src; sc.onload=res; sc.onerror=rej; document.head.appendChild(sc); });
+  const userDoc=()=>fbDb.collection("users").doc(user.uid);
+
+  function saveRead(path,on){
+    if(user && fbDb){
+      const fv=firebase.firestore.FieldValue;
+      userDoc().set({read: on?fv.arrayUnion(path):fv.arrayRemove(path), updatedAt:fv.serverTimestamp()},{merge:true}).catch(()=>toastSync(false));
+    } else store.set("read",[...read]);
+  }
+  function savePage(path,n){
+    if(!path || path==="#") return; const k=pkey(path); if(pages[k]===n) return;
+    pages[k]=n;
+    if(user && fbDb){ userDoc().set({pages:{[k]:n}},{merge:true}).catch(()=>toastSync(false)); }
+    else store.set("pages",pages);
+    const card=$("grid").querySelector('.card[data-path="'+CSS.escape(path)+'"]'); if(card) render();
+  }
+  function toastSync(ok){ const el=$("syncTag"); if(el){ el.textContent=ok?"ซิงก์แล้ว":"ยังไม่ได้ซิงก์"; el.classList.toggle("on",ok); } }
+
+  async function initAuth(cfg){
+    if(!cfg || !cfg.apiKey) return;
+    try{
+      await loadScript(FB+"firebase-app-compat.js");
+      await Promise.all([loadScript(FB+"firebase-auth-compat.js"), loadScript(FB+"firebase-firestore-compat.js")]);
+      firebase.initializeApp(cfg); fbAuth=firebase.auth(); fbDb=firebase.firestore();
+    }catch(e){ return; }
+    $("acct").hidden=false;
+    fbAuth.getRedirectResult().catch(e=>showLoginErr(e));
+    fbAuth.onAuthStateChanged(onUser);
+  }
+
+  async function onUser(u){
+    if(unsub){ unsub(); unsub=null; }
+    user=u; profile=null;
+    if(!u){
+      read=new Set(store.get("read",[])); pages=store.get("pages",{});
+      paintAccount(); render(); return;
+    }
+    closeModal("loginModal");
+    const ref=userDoc();
+    try{
+      const snap=await ref.get(), data=snap.exists?snap.data():{};
+      // fold anything marked while signed out into this account, then clear the guest copy
+      const guestRead=store.get("read",[]), guestPages=store.get("pages",{});
+      if(guestRead.length || Object.keys(guestPages).length){
+        const mergedRead=[...new Set([...(data.read||[]), ...guestRead])];
+        const mergedPages=Object.assign({},guestPages,data.pages||{});
+        await ref.set({read:mergedRead, pages:mergedPages},{merge:true});
+        store.set("read",[]); store.set("pages",{});
+      }
+      if(!data.name) openNameModal(true, u.displayName||"");
+    }catch(e){ /* snapshot below will still try */ }
+    unsub=ref.onSnapshot(s=>{
+      const d=s.data()||{}; profile=d;
+      read=new Set(d.read||[]); pages=d.pages||{};
+      paintAccount(); render(); toastSync(!s.metadata.hasPendingWrites);
+    },()=>toastSync(false));
+    paintAccount(); render();
+  }
+
+  function paintAccount(){
+    const signed=!!user;
+    $("loginBtn").hidden=signed; $("userBtn").hidden=!signed;
+    const h=$("hello");
+    if(!signed){
+      h.hidden=!fbAuth;
+      h.innerHTML='ตอนนี้บันทึกไว้แค่ในเครื่องนี้ · <button class="linkbtn" id="helloLogin">เข้าสู่ระบบ</button> เพื่อเก็บข้อมูลข้ามเครื่อง';
+      const b=$("helloLogin"); if(b) b.onclick=()=>openModal("loginModal");
+      return;
+    }
+    const name=(profile&&profile.name)||user.displayName||"ผู้ใช้";
+    $("uName").textContent=name; $("mName").textContent=name; $("mMail").textContent=user.email||"";
+    const av=$("av"); av.textContent="";
+    if(user.photoURL){ const im=new Image(); im.alt=""; im.referrerPolicy="no-referrer"; im.src=user.photoURL; im.onerror=()=>{av.textContent=name.trim().charAt(0).toUpperCase();}; av.appendChild(im); }
+    else av.textContent=name.trim().charAt(0).toUpperCase();
+    h.hidden=false; h.innerHTML=''; 
+    const b=document.createElement("b"); b.textContent=name;
+    h.append("สวัสดี ", b, " ");
+    const t=document.createElement("span"); t.className="sync on"; t.id="syncTag"; t.textContent="ซิงก์แล้ว"; h.append(t);
+  }
+
+  /* modals */
+  function openModal(id){ lastFocus=document.activeElement; $(id).hidden=false; const f=$(id).querySelector("input,button.gbtn,button"); if(f) setTimeout(()=>f.focus(),30); }
+  function closeModal(id){ if($(id).hidden) return; $(id).hidden=true; if(lastFocus&&lastFocus.focus) lastFocus.focus(); }
+  $("loginBtn").onclick=()=>openModal("loginModal");
+  $("loginCancel").onclick=()=>closeModal("loginModal");
+  $("loginModal").addEventListener("click",e=>{ if(e.target===$("loginModal")) closeModal("loginModal"); });
+  function showLoginErr(e){
+    const c=e&&e.code||"";
+    if(!c || c==="auth/popup-closed-by-user" || c==="auth/cancelled-popup-request") { $("loginErr").textContent=""; return; }
+    $("loginErr").textContent = c==="auth/unauthorized-domain" ? "เว็บนี้ยังไม่ได้รับอนุญาตใน Firebase (ต้องเพิ่มโดเมนใน Authorized domains)"
+      : c==="auth/network-request-failed" ? "เชื่อมต่ออินเทอร์เน็ตไม่ได้ ลองใหม่อีกครั้ง"
+      : "เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง";
+    if($("loginModal").hidden) openModal("loginModal");
+  }
+  $("googleBtn").onclick=async()=>{
+    if(!fbAuth) return;
+    const p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:"select_account"});
+    $("loginErr").textContent=""; $("googleBtn").disabled=true;
+    try{ await fbAuth.signInWithPopup(p); }
+    catch(e){
+      if(e.code==="auth/popup-blocked"||e.code==="auth/operation-not-supported-in-this-environment"){ try{ await fbAuth.signInWithRedirect(p); return; }catch(e2){ showLoginErr(e2); } }
+      else showLoginErr(e);
+    }finally{ $("googleBtn").disabled=false; }
+  };
+
+  let firstName=false;
+  function openNameModal(first, suggest){
+    firstName=first;
+    $("nmTitle").textContent=first?"ตั้งชื่อผู้ใช้":"เปลี่ยนชื่อผู้ใช้";
+    $("nmText").textContent=first?"ชื่อนี้จะแสดงตอนเข้าใช้งาน เปลี่ยนทีหลังได้":"ชื่อใหม่จะแสดงทุกเครื่องที่เข้าสู่ระบบบัญชีนี้";
+    $("nameSave").textContent=first?"เริ่มใช้งาน":"บันทึก";
+    $("nameCancel").hidden=first; $("nameErr").textContent="";
+    $("nameInput").value=(suggest||"").slice(0,24);
+    openModal("nameModal");
+  }
+  $("nameCancel").onclick=()=>closeModal("nameModal");
+  $("nameForm").addEventListener("submit",async e=>{
+    e.preventDefault(); if(!user) return;
+    const v=$("nameInput").value.replace(/\s+/g," ").trim();
+    if(v.length<2){ $("nameErr").textContent="ชื่อต้องมีอย่างน้อย 2 ตัวอักษร"; $("nameInput").focus(); return; }
+    $("nameSave").disabled=true;
+    try{
+      const fv=firebase.firestore.FieldValue;
+      await userDoc().set(Object.assign({name:v, updatedAt:fv.serverTimestamp()}, firstName?{createdAt:fv.serverTimestamp()}:{}),{merge:true});
+      closeModal("nameModal");
+    }catch(err){ $("nameErr").textContent="บันทึกชื่อไม่สำเร็จ ลองใหม่อีกครั้ง"; }
+    finally{ $("nameSave").disabled=false; }
+  });
+
+  /* account menu */
+  function setMenu(open){ $("menu").hidden=!open; $("userBtn").setAttribute("aria-expanded",String(open)); }
+  $("userBtn").onclick=e=>{ e.stopPropagation(); setMenu($("menu").hidden); };
+  document.addEventListener("click",e=>{ if(!$("menu").hidden && !$("acct").contains(e.target)) setMenu(false); });
+  $("renameBtn").onclick=()=>{ setMenu(false); openNameModal(false,(profile&&profile.name)||""); };
+  $("logoutBtn").onclick=async()=>{ setMenu(false); if(fbAuth) await fbAuth.signOut(); };
+  document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; setMenu(false); if(!$("loginModal").hidden) closeModal("loginModal"); if(!$("nameModal").hidden && !firstName) closeModal("nameModal"); });
 
   load();
 })();
