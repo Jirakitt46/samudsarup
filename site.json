@@ -3,10 +3,12 @@
   "message": "ค่อย ๆ อ่านไปนะ มีตรงไหนไม่เข้าใจถามได้",
   "repo": "",
   "firebase": {
-    "apiKey": "",
-    "authDomain": "",
-    "projectId": "",
-    "appId": ""
+    "apiKey": "AIzaSyAnunoFVqEGWxWsEYofigNBPFabE8WnflI",
+    "authDomain": "samudsarup.firebaseapp.com",
+    "projectId": "samudsarup",
+    "storageBucket": "samudsarup.firebasestorage.app",
+    "messagingSenderId": "27556273763",
+    "appId": "1:27556273763:web:c18ab7b1997b1cb9cce256"
   },
   "notes": {
     "01 การเคลื่อนที่แนวตรง.pdf": {
